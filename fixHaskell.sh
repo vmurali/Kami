@@ -168,3 +168,12 @@ do
     $SED -i -e '0,/^import/{s/^import/import qualified Data.Vector.Generic\nimport/}' $file
   fi
 done
+
+for file in $(find $1 -name "*.hs")
+do
+  grep -q "import qualified GHC\.Exts" $file
+  if [ $? -ne 0 ]
+  then
+    $SED -i -e '0,/^import/{s/^import/import qualified GHC.Exts\nimport/}' $file
+  fi
+done
