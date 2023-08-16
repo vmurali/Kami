@@ -176,4 +176,5 @@ do
   then
     $SED -i -e '0,/^import/{s/^import/import qualified GHC.Exts\nimport/}' $file
   fi
+  $SED -i -e 's/GHC\.Base\.unsafeCoerce#/GHC.Exts.unsafeCoerce#/g' $file
 done

@@ -6,7 +6,7 @@ module PrettyPrintVerilog where
 import qualified Target as T
 import Data.List
 import Data.Char
-import Control.Monad.State.Lazy
+import Control.Monad.State
 import qualified Data.Map.Lazy as H
 import Debug.Trace
 import Numeric
