@@ -27,7 +27,7 @@ Arguments RtlReadWire: clear implicits.
 Section Compile.
   Variable name: string.
 
-  Fixpoint convertExprToRtl k (e: RtlExpr (SyntaxKind k)) := e.
+  Definition convertExprToRtl k (e: RtlExpr (SyntaxKind k)) := e.
 
   Definition getRtlDisp (d: RtlSysT) := d.
 

@@ -106,7 +106,7 @@ Fixpoint rand_val(k : Kind) : IO (eval_Kind k) :=
   | Array n k' => rand_vector (rand_val k')
   end.
 
-Fixpoint rand_val_FK(k : FullKind) : IO (eval_FK k) :=
+Definition rand_val_FK(k : FullKind) : IO (eval_FK k) :=
   match k with
   | SyntaxKind k' => rand_val k'
   | NativeKind k' c => ret c

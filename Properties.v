@@ -3,6 +3,7 @@ Import Word.Notations.
 Import ListNotations.
 Require Import Coq.Sorting.Permutation.
 Require Import Coq.Sorting.PermutEq.
+Require Import Psatz.
 Require Import RelationClasses Setoid Morphisms.
 Require Import ZArith.
 
@@ -629,14 +630,14 @@ Lemma seq_app' s e :
 Proof.
   induction e; intros.
   - rewrite Nat.le_0_r in *; subst; simpl; reflexivity.
-  - destruct (le_lt_or_eq _ _ Hm_lte_e).
+  - destruct (le_lt_eq_dec _ _ Hm_lte_e).
     + rewrite Nat.sub_succ_l; [|lia].
       repeat rewrite seq_eq.
       assert (s + m + (e - m) = s + e) as P0.
       { lia. }
       rewrite (IHe m), app_assoc, P0; auto.
       lia.
-    + rewrite <- H.
+    + rewrite <- e0.
       rewrite Nat.sub_diag, app_nil_r; reflexivity.
 Qed.
 
@@ -844,7 +845,7 @@ Proof.
   induction l.
   - unfold getNumFromCalls; reflexivity.
   - destruct (MethT_dec f a);[rewrite getNumFromCalls_eq_cons; auto| rewrite getNumFromCalls_neq_cons; auto].
-    Omega.omega.
+    lia.
 Qed.
 
 Lemma getNumCalls_nonneg f l:
@@ -854,7 +855,7 @@ Proof.
   - rewrite getNumCalls_nil;reflexivity.
   - rewrite getNumCalls_cons.
     specialize (getNumFromCalls_nonneg f (snd (snd a))) as B1.
-    Omega.omega.
+    lia.
 Qed.
     
 Lemma getNumFromExecs_eq_cons f g l :
@@ -907,7 +908,7 @@ Proof.
   - simpl; reflexivity.
   - destruct a;[rewrite getNumFromExecs_Rle_cons
                |destruct (MethT_dec f f0);[rewrite getNumFromExecs_eq_cons
-                                          |rewrite getNumFromExecs_neq_cons]]; auto; Omega.omega.
+                                          |rewrite getNumFromExecs_neq_cons]]; auto; lia.
 Qed.
 
 Corollary getNumExecs_nonneg f l :
@@ -2088,7 +2089,7 @@ Proof.
   - inv H0.
     destruct (in_dec string_dec (fst f) (map fst (getAllMethods m))); auto.
     specialize (NotInDef_ZeroExecs_Step _ n HStep) as noExec_zero.
-    apply False_ind; Omega.omega.
+    apply False_ind; lia.
   - eapply IHTrace; eauto.
 Qed.
 
@@ -2110,11 +2111,11 @@ Proof.
     specialize (getNumExecs_nonneg f l1) as P1;specialize (getNumExecs_nonneg f l2) as P2.
     destruct H1.
     + specialize (IHStep1 _ H1); destruct (Z.eq_dec (getNumCalls f l2) 0%Z).
-      * rewrite e, Z.add_0_r;Omega.omega.
-      * specialize (HMatching2 _ n H1); dest; Omega.omega.
+      * rewrite e, Z.add_0_r;lia.
+      * specialize (HMatching2 _ n H1); dest; lia.
     + specialize (IHStep2 _ H1); destruct (Z.eq_dec (getNumCalls f l1) 0%Z).
-      * rewrite e; simpl; Omega.omega.
-      * specialize (HMatching1 _ n H1); dest; Omega.omega.
+      * rewrite e; simpl; lia.
+      * specialize (HMatching1 _ n H1); dest; lia.
 Qed.
 
 Lemma Trace_meth_InCall_InDef_InExec m o ls:
@@ -2818,24 +2819,24 @@ Proof.
         -- rewrite e.
            specialize (H5 _ H7).
            specialize (getNumExecs_nonneg f l2); intros.
-           Omega.omega.
+           lia.
         -- destruct  (HMatching2 f n H7).
            assert (getNumExecs f l2 = 0%Z) as P1.
            { destruct (HDisjMeths (fst f)).
              - apply (in_map fst) in H7; simpl in *; rewrite fst_getKindAttr in H7; contradiction.
              - eapply NotInDef_ZeroExecs_Substeps; eauto; simpl; assumption. }
-           Omega.omega.
+           lia.
       * destruct (Z.eq_dec (getNumCalls f l1) 0%Z).
         -- rewrite e.
            specialize (H2 _ H7).
            specialize (getNumExecs_nonneg f l1); intros.
-           Omega.omega.
+           lia.
         -- destruct  (HMatching1 f n H7).
            assert (getNumExecs f l1 = 0%Z) as P1.
            { destruct (HDisjMeths (fst f)).
              - eapply NotInDef_ZeroExecs_Substeps; eauto; simpl; assumption.
              - apply (in_map fst) in H7; simpl in *; rewrite fst_getKindAttr in H7; contradiction. }
-           Omega.omega.
+           lia.
     + intros s v.
       rewrite map_app;repeat rewrite in_app_iff.
       unfold getListFullLabel_diff in *.
@@ -2845,14 +2846,14 @@ Proof.
       * assert (getNumExecs (s, v) l2 = 0%Z) as P1.
         { eapply NotInDef_ZeroExecs_Substeps; eauto; simpl; assumption. }
         destruct (Z.eq_dec (getNumCalls (s, v) l2) 0%Z).
-        { specialize (H6 _ v H7 H8); Omega.omega. }
+        { specialize (H6 _ v H7 H8); lia. }
         destruct (HMatching2 _ n H7); contradiction.
       * pose proof (WfMod_Hidden HWf2 _ H8); contradiction.
       * pose proof (WfMod_Hidden HWf1 _ H8); contradiction.
       * assert (getNumExecs (s, v) l1 = 0%Z) as P1.
         { eapply NotInDef_ZeroExecs_Substeps; eauto; simpl; assumption. }
         destruct (Z.eq_dec (getNumCalls (s, v) l1) 0%Z);
-          [specialize (H3 _ v H7 H8);Omega.omega|].
+          [specialize (H3 _ v H7 H8);lia|].
         destruct (HMatching1 _ n H7); contradiction.
 Qed.
 
@@ -3097,8 +3098,8 @@ Proof.
   induction l.
   - reflexivity.
   - destruct a, p, r0; unfold getNumExecs in *;simpl.
-    + rewrite getNumFromExecs_Rle_cons, Zlength_cons; Omega.omega.
-    + destruct (MethT_dec f f0); simpl in *;[rewrite getNumFromExecs_eq_cons|rewrite getNumFromExecs_neq_cons];auto; rewrite Zlength_cons; Omega.omega.
+    + rewrite getNumFromExecs_Rle_cons, Zlength_cons; lia.
+    + destruct (MethT_dec f f0); simpl in *;[rewrite getNumFromExecs_eq_cons|rewrite getNumFromExecs_neq_cons];auto; rewrite Zlength_cons; lia.
   Transparent getNumFromExecs.
 Qed.
 
@@ -3107,7 +3108,7 @@ Lemma getNumFromCalls_le_length (f : MethT) (l : MethsT):
 Proof.
   induction l.
   - reflexivity.
-  - destruct (MethT_dec f a);[rewrite getNumFromCalls_eq_cons|rewrite getNumFromCalls_neq_cons]; auto; rewrite Zlength_cons; Omega.omega.
+  - destruct (MethT_dec f a);[rewrite getNumFromCalls_eq_cons|rewrite getNumFromCalls_neq_cons]; auto; rewrite Zlength_cons; lia.
 Qed.
 
 Lemma filter_reduces_calls (f : MethT) (g : FullLabel -> bool) (l : list FullLabel) :
@@ -3116,7 +3117,7 @@ Proof.
   induction l; simpl.
   - reflexivity.
   - specialize (getNumFromCalls_nonneg f (snd (snd a))) as P1.
-    destruct (g a); repeat rewrite getNumCalls_cons; Omega.omega.
+    destruct (g a); repeat rewrite getNumCalls_cons; lia.
 Qed.
 
 Lemma filter_reduces_execs (f : MethT) (g : FullLabel -> bool) (l : list FullLabel) :
@@ -3127,9 +3128,9 @@ Proof.
   - reflexivity.
   - destruct (g a), a, p, r0; unfold getNumExecs in *; simpl in *.
     + repeat rewrite getNumFromExecs_Rle_cons; assumption.
-    + destruct (MethT_dec f f0);[repeat rewrite getNumFromExecs_eq_cons|repeat rewrite getNumFromExecs_neq_cons];auto;Omega.omega.
+    + destruct (MethT_dec f f0);[repeat rewrite getNumFromExecs_eq_cons|repeat rewrite getNumFromExecs_neq_cons];auto;lia.
     + rewrite getNumFromExecs_Rle_cons; assumption.
-    + destruct (MethT_dec f f0);[rewrite getNumFromExecs_eq_cons|rewrite getNumFromExecs_neq_cons];auto;Omega.omega.
+    + destruct (MethT_dec f f0);[rewrite getNumFromExecs_eq_cons|rewrite getNumFromExecs_neq_cons];auto;lia.
   Transparent getNumFromExecs.
 Qed.
 
@@ -3789,7 +3790,7 @@ Proof.
                    In meth (getAllMethods m2) -> forall v : type (fst (projT1 (snd meth))), WfConcatActionT (projT2 (snd meth) type v) m1) ) by (split; dest; intros; auto).
     specialize (IHStep1 sth1).
     specialize (IHStep2 sth2).
-    rewrite getNumCalls_app; Omega.omega.
+    rewrite getNumCalls_app; lia.
 Qed.
 
 Lemma WfConcats_Trace : forall (m1 m2 : Mod) (o : RegsT) ls (l : list FullLabel),
@@ -4583,9 +4584,9 @@ Section ModularSubstitution.
         rewrite <- H21 in H10; simpl in H10.
         specialize (getNumExecs_nonneg f (filterExecs id a l)) as P1.
         specialize (getNumCalls_nonneg f (filterExecs id a l)) as P2.
-        assert (getNumCalls f (filterExecs id a l) <> 0%Z);[clear - P1 P2 H22 H10;Omega.omega|].
+        assert (getNumCalls f (filterExecs id a l) <> 0%Z);[clear - P1 P2 H22 H10;lia|].
         specialize (H5 H23).
-        assert (helper: (getNumExecs f (filterExecs id a l) < getNumCalls f (filterExecs id a l))%Z) by Omega.omega.
+        assert (helper: (getNumExecs f (filterExecs id a l) < getNumCalls f (filterExecs id a l))%Z) by lia.
         pose proof (Trace_meth_InCall_InDef_InExec H2 f i) as sth10.
         pose proof (map_nth_error (filterExecs id a) _ _ H11) as sth11.
         specialize (sth10 _ sth11).
@@ -4593,19 +4594,19 @@ Section ModularSubstitution.
         * clear - H11 H2 helper th1 sth10 sth11.
           specialize (sth10 th1).
           pose proof (Trace_meth_InCall_InDef_InExec H2 f i) as sth0.
-          Omega.omega.
+          lia.
         * pose proof (NotInDef_ZeroExecs_Trace' f H2 th2 _ sth11) as sth12.
-          assert (sth13: (getNumCalls f (filterExecs id a l) > 0)%Z) by (Omega.omega).
+          assert (sth13: (getNumCalls f (filterExecs id a l) > 0)%Z) by (lia).
           rewrite sth12 in *.
-          assert (sth14: getNumCalls f (filterExecs id a l) = getNumCalls f l1) by Omega.omega.
+          assert (sth14: getNumCalls f (filterExecs id a l) = getNumCalls f l1) by lia.
           destruct (in_dec (prod_dec string_dec Signature_dec) (fst f, projT1 (snd f)) (getKindAttr (getAllMethods b))) as [ez|hard].
           -- specialize (H5 ez); dest.
              rewrite sth14 in *.
-             split; [tauto |Omega.omega].
+             split; [tauto |lia].
           -- destruct (in_dec string_dec (fst f) (getHidden b')) as [lhs | rhs]; [ |tauto ].
              apply (in_map fst) in H20; rewrite fst_getKindAttr in H20.
              pose proof (WfConcats_Trace H WfConcat0 _ H13 f lhs).
-             Omega.omega.
+             lia.
       + unfold MatchingExecCalls_Concat in *; intros.
         repeat match goal with
                | H : forall (x: MethT), _ |- _ => specialize (H f)
@@ -4622,9 +4623,9 @@ Section ModularSubstitution.
         rewrite <- H21 in H8; simpl in H8.
         specialize (getNumExecs_nonneg f (filterExecs id b l)) as P1.
         specialize (getNumCalls_nonneg f (filterExecs id b l)) as P2.
-        assert (getNumCalls f (filterExecs id b l) <> 0%Z);[clear - P1 P2 H22 H8;Omega.omega|].
+        assert (getNumCalls f (filterExecs id b l) <> 0%Z);[clear - P1 P2 H22 H8;lia|].
         specialize (H14 H23).
-        assert (helper: (getNumExecs f (filterExecs id b l) < getNumCalls f (filterExecs id b l))%Z) by Omega.omega.
+        assert (helper: (getNumExecs f (filterExecs id b l) < getNumCalls f (filterExecs id b l))%Z) by lia.
         pose proof (Trace_meth_InCall_InDef_InExec H3 f i) as sth10.
         pose proof (map_nth_error (filterExecs id b) _ _ H11) as sth11.
         specialize (sth10 _ sth11).
@@ -4632,18 +4633,18 @@ Section ModularSubstitution.
         * clear - H11 H3 helper th1 sth10 sth11.
           specialize (sth10 th1).
           pose proof (Trace_meth_InCall_InDef_InExec H3 f i) as sth0.
-          Omega.omega.
+          lia.
         * pose proof (NotInDef_ZeroExecs_Trace' f H3 th2 _ sth11) as sth12.
-          assert (sth13: (getNumCalls f (filterExecs id b l) > 0)%Z) by (Omega.omega).
+          assert (sth13: (getNumCalls f (filterExecs id b l) > 0)%Z) by (lia).
           rewrite sth12 in *.
-          assert (sth14: getNumCalls f (filterExecs id b l) = getNumCalls f l0) by Omega.omega.
+          assert (sth14: getNumCalls f (filterExecs id b l) = getNumCalls f l0) by lia.
           destruct (in_dec (prod_dec string_dec Signature_dec) (fst f, projT1 (snd f)) (getKindAttr (getAllMethods a))) as [ez|hard].
           -- specialize (H14 ez); dest.
              rewrite sth14 in *.
-             split; [tauto|Omega.omega].
+             split; [tauto|lia].
           -- destruct (in_dec string_dec (fst f) (getHidden a')) as [lhs | rhs]; [ | tauto].
              pose proof (WfConcats_Trace H0 WfConcat3 _ H12 f lhs).
-             Omega.omega.
+             lia.
       + destruct x3, x4, p, p0, r1, r2; simpl; auto.
         pose proof (in_map (fun x => fst (snd x)) _ _ H19) as sth3.
         pose proof (in_map (fun x => fst (snd x)) _ _ H20) as sth4.
@@ -4677,7 +4678,7 @@ Section ModularSubstitution.
         rewrite H16 at 1 2.
         repeat rewrite getNumExecs_app, getNumCalls_app.
         specialize (H8 f);specialize (H10 f).
-        clear - H8 H10; Omega.omega.
+        clear - H8 H10; lia.
       + dest.
         rewrite H17. rewrite map_app, in_app_iff in *; setoid_rewrite in_app_iff.
         clear - H19 H18 H14.
@@ -4758,7 +4759,7 @@ Section Fold.
       as [l K] by (exists (length ls); auto). 
     revert ls K.
     induction l as [| l]; intros * K.
-    - assert (A1: length ls = 0) by omega. 
+    - assert (A1: length ls = 0) by lia. 
       apply length_zero_iff_nil in A1.
       now subst ls.
     - destruct ls as [| x1 xs]. now simpl.
@@ -4780,13 +4781,13 @@ Section Fold.
         as [A1 A2]. {
         symmetry in Tpl.
         apply unapp_half_nonnil_reduces in Tpl; auto.
-        2: simpl; omega. 
+        2: simpl; lia. 
         simpl in *.
-        omega. 
+        lia. 
       }
       simpl in A1, A2.
-      assert (A3: length m1 <= l) by omega; clear A1.
-      assert (A4: length m2 <= l) by omega; clear A2.
+      assert (A3: length m1 <= l) by lia; clear A1.
+      assert (A4: length m2 <= l) by lia; clear A2.
       remember (f (fold_tree f seed m1) (fold_tree f seed m2)) as sth.
       rewrite fold_tree_equation.
       simpl.
@@ -4867,7 +4868,7 @@ Section FoldExpr.
       as [l K] by (exists (length ls); auto). 
     revert ls K.
     induction l as [| l]; intros * K.
-    - assert (A1: length ls = 0) by omega. 
+    - assert (A1: length ls = 0) by lia. 
       apply length_zero_iff_nil in A1.
       now subst ls.
     - destruct ls as [| x1 xs]. now simpl.
@@ -4889,13 +4890,13 @@ Section FoldExpr.
         as [A1 A2]. {
         symmetry in Tpl.
         apply unapp_half_nonnil_reduces in Tpl; auto.
-        2: simpl; omega. 
+        2: simpl; lia. 
         simpl in *.
-        omega. 
+        lia. 
       }
       simpl in A1, A2.
-      assert (A3: length m1 <= l) by omega; clear A1.
-      assert (A4: length m2 <= l) by omega; clear A2.
+      assert (A3: length m1 <= l) by lia; clear A1.
+      assert (A4: length m2 <= l) by lia; clear A2.
       remember (f (fold_tree f seed m1) (fold_tree f seed m2)) as sth.
       rewrite fold_tree_equation.
       simpl.
@@ -5170,7 +5171,7 @@ Section SimulationGen.
   Proof.
     induction 1; simpl; auto; intros; subst.
     - destruct ls; simpl in *; auto; simpl in *.
-      assert (sth1: length ls = 0) by (simpl in *; Omega.omega).
+      assert (sth1: length ls = 0) by (simpl in *; lia).
       rewrite length_zero_iff_nil in sth1; subst; simpl in *.
       specialize (HNoRle p (or_introl eq_refl)).
       specialize (HDisjRegs p (or_introl eq_refl)).
@@ -5183,7 +5184,7 @@ Section SimulationGen.
       inv HLabel.
       tauto.
     - destruct ls; simpl in *; auto; simpl in *.
-      assert (sth1: length ls = 0) by (simpl in *; Omega.omega).
+      assert (sth1: length ls = 0) by (simpl in *; lia).
       rewrite length_zero_iff_nil in sth1; subst; simpl in *.
       specialize (HDisjRegs p (or_introl eq_refl)).
       repeat destruct p; simpl in *.
@@ -5249,7 +5250,7 @@ Section SimulationGen.
     inv H9.
     pose proof (SubstepsSingle HSubsteps) as sth.
     destruct lImp; [tauto| simpl in *].
-    destruct lImp; simpl in *; [| Omega.omega].
+    destruct lImp; simpl in *; [| lia].
     repeat destruct p; simpl in *.
     inv HSubsteps; inv HLabel; simpl in *.
     - destruct (@simulationRule _ _ _ _ _ _ _ HInRules HAction H11 _ H12); dest; subst.
@@ -5259,7 +5260,7 @@ Section SimulationGen.
         * constructor 1; auto.
           eapply simRelGood; eauto.
         * unfold MatchingExecCalls_Base, getNumCalls, getNumExecs; intros; simpl.
-          Omega.omega.
+          lia.
       + simpl.
         split.
         * unfold UpdRegs; repeat split; auto; intros.
@@ -5281,7 +5282,7 @@ Section SimulationGen.
                 eapply simRelGood; eauto.
           -- unfold MatchingExecCalls_Base; unfold getNumCalls, getNumExecs; simpl; intros.
              rewrite app_nil_r.
-             assert (th1: forall x, (x = 0)%Z -> (x <= 0)%Z) by (intros; Omega.omega).
+             assert (th1: forall x, (x = 0)%Z -> (x <= 0)%Z) by (intros; lia).
              apply th1; clear th1.
              eapply NoSelfCallRule_Impl; eauto.
         * split; auto.
@@ -5303,11 +5304,11 @@ Section SimulationGen.
               eapply simRelGood; eauto.
         -- unfold MatchingExecCalls_Base; unfold getNumCalls, getNumExecs; simpl; intros.
            rewrite app_nil_r.
-           assert (th1: forall x, (x = 0)%Z -> (x <= 0)%Z) by (intros; Omega.omega).
+           assert (th1: forall x, (x = 0)%Z -> (x <= 0)%Z) by (intros; lia).
            match goal with
            | |- (_ <= if ?P then _ else _)%Z => destruct P; subst; simpl in *
            end.
-           ++ assert (th2: forall x, (x = 0)%Z -> (x <= 1)%Z) by (intros; Omega.omega).
+           ++ assert (th2: forall x, (x = 0)%Z -> (x <= 1)%Z) by (intros; lia).
               apply th2; clear th2.
               eapply NoSelfCallMeth_Impl; eauto.
            ++ apply th1; clear th1.

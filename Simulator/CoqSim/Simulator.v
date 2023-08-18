@@ -426,8 +426,6 @@ Definition init_state(m : Mod)(args : list (string * string)) : IO KamiState :=
     do s <- initialize_files args rfs;
     ret (regs,s).
 
-Print evaluated_Rule.
-
 Definition sim_step{init_regs}(r : evaluated_Rule init_regs) : forall st : KamiState,
   kind_consistent init_regs (fst st) -> Map {sig : Signature & meth_sig sig} -> IO KamiState :=
   r.

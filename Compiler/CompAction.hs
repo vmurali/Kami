@@ -6,6 +6,7 @@ import qualified Target as T
 import Data.List
 import Data.Char
 import Control.Monad.State.Lazy
+import Control.Monad
 import qualified Data.Map.Lazy as H
 import Debug.Trace
 import Numeric
@@ -583,7 +584,7 @@ ppCAS :: CA_rtl -> State ExprState VerilogExprs
 ppCAS (T.CompCall_simple f (_,k) pred arg _ cont) = do
   i <- meth_count f
   j <- {-trace "Call\n"-} let_count
-  y <- ppCAS (cont $ tmp_var j)
+  y <- ppCAS (cont $ T.unsafeCoerce (tmp_var j))
   return $ y {
     assign_exprs = ((f ++ "#_argument", Just i), arg) :
                    ((f ++ "#_enable", Just i), pred) :
@@ -633,7 +634,7 @@ ppCAS (T.CompLetFull_simple _  a _ cont) = do
   j <- {-trace ("LetFull:\n" ++ show map_a ++ "\n\n")-} let_count
   assigns <- get_all_upds map_a
   s <- get
-  y <- ppCAS (cont (tmp_var j) (regmap_counters s))
+  y <- ppCAS (cont (T.unsafeCoerce $ tmp_var j) (regmap_counters s))
   return $ y {
     assign_exprs = assigns_a ++ (tmp_var j, ret_a) : assigns ++ assign_exprs y
     , if_begin_end_exprs = if_begin_ends_a ++ if_begin_end_exprs y
@@ -648,28 +649,28 @@ ppCAS (T.CompWrite_simple idxNum k writePort dataArray readMap _ cont) = do
 
 ppCAS (T.CompSyncReadReq_simple idxNum num k readReq readReg dataArray isAddr readMap _ cont) = do
   j <- {-trace "SyncReadReq\n"-} let_count
-  y <- ppCAS (cont $ tmp_var j)
+  y <- ppCAS (cont $ T.unsafeCoerce (tmp_var j))
   return $ y {
     assign_exprs = (tmp_var j, T.Const (T.Bit 0) $ T.getDefaultConst (T.Bit 0)) : assign_exprs y
   }
 
 ppCAS (T.CompSyncReadRes_simple idxNum num readResp readReg dataArray writePort isWrMask k True readMap _ cont) = do
   j <- {-trace "SyncReadResTrue\n"-} let_count
-  y <- ppCAS (cont $ tmp_var j)
+  y <- ppCAS (cont $ T.unsafeCoerce (tmp_var j))
   return $ y {
     assign_exprs = (tmp_var j, queryIsAddrReadResp readResp writePort readReg idxNum num k isWrMask $ flatten_RME readMap) : assign_exprs y
   }
 
 ppCAS (T.CompSyncReadRes_simple idxNum num readResp readReg dataArray writePort isWrMask k False readMap _ cont) = do
   j <- {-trace "SyncReadResFalse\n"-} let_count
-  y <- ppCAS (cont $ tmp_var j)
+  y <- ppCAS (cont $ T.unsafeCoerce (tmp_var j))
   return $ y {
     assign_exprs = (tmp_var j, queryNotIsAddrReadResp readResp readReg num k) : assign_exprs y
   }
 
 ppCAS (T.CompAsyncRead_simple idxNum num readPort dataArray writePort isWrMask idx pred k readMap _ cont) = do
   j <- {-trace "AsyncRead\n"-} let_count
-  y <- ppCAS (cont $ tmp_var j)
+  y <- ppCAS (cont $ T.unsafeCoerce (tmp_var j))
   return $ y {
     assign_exprs = (tmp_var j, queryAsyncReadResp readPort writePort idxNum num k isWrMask pred idx $ flatten_RME readMap) : assign_exprs y
   }

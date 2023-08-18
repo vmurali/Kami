@@ -7,11 +7,11 @@ Class toString (X : Type) := {
   to_string : X -> string
   }.
 
-Instance toString_prod{X Y}`{toString X, toString Y} : toString (X * Y) := {|
+#[export] Instance toString_prod{X Y}`{toString X, toString Y} : toString (X * Y) := {|
   to_string := fun '(x,y) => (to_string x ++ "_" ++ to_string y)%string
   |}.
 
-Instance toString_sigma{X}{Y : X -> Type}`{toString X}`{forall x, toString (Y x)} : toString {x : X & Y x} := {|
+#[export] Instance toString_sigma{X}{Y : X -> Type}`{toString X}`{forall x, toString (Y x)} : toString {x : X & Y x} := {|
   to_string := fun '(existT x y) => (to_string x ++ "_" ++ to_string y)%string
   |}.
 
@@ -269,10 +269,10 @@ Definition all_init : ConstT (Array num Data) :=
   ConstArray (fun _ => init_val).
 
 Definition expected_read_under(val : word Xlen) : ConstT (Array num Data) :=
-    ConstArray (fun i => if f2n i <? write_index - read_under_index then init_val else val).
+    ConstArray (fun i => if (f2n i <? write_index - read_under_index)%nat then init_val else val).
 
 Definition expected_read_over(val : word Xlen) : ConstT (Array num Data) :=
-    ConstArray (fun i => if f2n i <? num - (read_over_index - write_index) then val else init_val).
+    ConstArray (fun i => if (f2n i <? num - (read_over_index - write_index))%nat then val else init_val).
 
 (*translations*)
 Definition read_under_Fin_to_write_Fin(i : Fin.t num) : Fin.t num.
@@ -297,7 +297,7 @@ Proof.
 Defined.
 
 Definition expected_read_under_masked(mask_val non_mask_val : word Xlen)(mf nmf : Fin.t num -> bool) : ConstT (Array num Data) :=
-  ConstArray (fun i => if f2n i <? write_index - read_under_index then init_val else
+  ConstArray (fun i => if (f2n i <? write_index - read_under_index)%nat then init_val else
     if mf (read_under_Fin_to_write_Fin i) then mask_val else 
     if nmf (read_under_Fin_to_write_Fin i) then non_mask_val else init_val).
 

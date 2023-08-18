@@ -44,12 +44,12 @@ Definition KRSimplifyTop_Prop (e: KRExpr_Prop) : KRExpr_Prop :=
                                  end
                           end
   | KRAnd_Prop a KRTrue_Prop => a
-  | KRAnd_Prop a KRFalse_Prop => KRFalse_Prop
+  | KRAnd_Prop _ KRFalse_Prop => KRFalse_Prop
   | KRAnd_Prop KRTrue_Prop a => a
-  | KRAnd_Prop KRFalse_Prop a => KRFalse_Prop
-  | KROr_Prop a KRTrue_Prop => KRTrue_Prop
+  | KRAnd_Prop KRFalse_Prop _ => KRFalse_Prop
+  | KROr_Prop _ KRTrue_Prop => KRTrue_Prop
   | KROr_Prop a KRFalse_Prop => a
-  | KROr_Prop KRTrue_Prop a => KRTrue_Prop
+  | KROr_Prop KRTrue_Prop _ => KRTrue_Prop
   | KROr_Prop KRFalse_Prop a => a
   | KRNot_Prop (KRTrue_Prop) => KRFalse_Prop
   | KRNot_Prop (KRFalse_Prop) => KRTrue_Prop
@@ -100,7 +100,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KRAnd_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KRAnd_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KROr_Prop: forall a b,
      KRSimplify_Prop (KROr_Prop a b)= KRSimplifyTop_Prop (KROr_Prop (KRSimplify_Prop a) (KRSimplify_Prop b)).
@@ -108,7 +108,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KROr_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KROr_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KRNot_Prop: forall a,
      KRSimplify_Prop (KRNot_Prop a)= KRSimplifyTop_Prop (KRNot_Prop (KRSimplify_Prop a)).
@@ -116,7 +116,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KRNot_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KRNot_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KRIn_string_Prop: forall a b,
      KRSimplify_Prop (KRIn_string_Prop a b)= KRSimplifyTop_Prop (KRIn_string_Prop (KRSimplify_string a) (KRSimplify_list_string b)).
@@ -124,7 +124,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KRIn_string_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KRIn_string_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KRIn_RegInitT_Prop: forall a b,
      KRSimplify_Prop (KRIn_RegInitT_Prop a b)= KRSimplifyTop_Prop (KRIn_RegInitT_Prop (KRSimplify_RegInitT a) (KRSimplify_list_RegInitT b)).
@@ -132,7 +132,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KRIn_RegInitT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KRIn_RegInitT_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KRIn_DefMethT_Prop: forall a b,
      KRSimplify_Prop (KRIn_DefMethT_Prop a b)= KRSimplifyTop_Prop (KRIn_DefMethT_Prop (KRSimplify_DefMethT a) (KRSimplify_list_DefMethT b)).
@@ -140,7 +140,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KRIn_DefMethT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KRIn_DefMethT_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KRIn_Rule_Prop: forall a b,
      KRSimplify_Prop (KRIn_Rule_Prop a b)= KRSimplifyTop_Prop (KRIn_Rule_Prop (KRSimplify_Rule a) (KRSimplify_list_Rule b)).
@@ -148,7 +148,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KRIn_Rule_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KRIn_Rule_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KRDisjKey_RegInitT_Prop: forall a b,
      KRSimplify_Prop (KRDisjKey_RegInitT a b)= KRSimplifyTop_Prop (KRDisjKey_RegInitT (KRSimplify_list_RegInitT a) (KRSimplify_list_RegInitT b)).
@@ -156,7 +156,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KRDisjKey_RegInitT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KRDisjKey_RegInitT_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KRDisjKey_DefMethT_Prop: forall a b,
      KRSimplify_Prop (KRDisjKey_DefMethT a b)= KRSimplifyTop_Prop (KRDisjKey_DefMethT (KRSimplify_list_DefMethT a) (KRSimplify_list_DefMethT b)).
@@ -164,7 +164,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KRDisjKey_DefMethT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KRDisjKey_DefMethT_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KRDisjKey_Rule_Prop: forall a b,
      KRSimplify_Prop (KRDisjKey_Rule a b)= KRSimplifyTop_Prop (KRDisjKey_Rule (KRSimplify_list_Rule a) (KRSimplify_list_Rule b)).
@@ -172,7 +172,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KRDisjKey_Rule_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KRDisjKey_Rule_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KREq_string_Prop: forall a b,
      KRSimplify_Prop (KREq_string_Prop a b)= KRSimplifyTop_Prop (KREq_string_Prop (KRSimplify_string a) (KRSimplify_string b)).
@@ -180,7 +180,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KREq_string_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KREq_string_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KREq_RegInitT_Prop: forall a b,
      KRSimplify_Prop (KREq_RegInitT_Prop a b)= KRSimplifyTop_Prop (KREq_RegInitT_Prop (KRSimplify_RegInitT a) (KRSimplify_RegInitT b)).
@@ -188,7 +188,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KREq_RegInitT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KREq_RegInitT_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KREq_DefMethT_Prop: forall a b,
      KRSimplify_Prop (KREq_DefMethT_Prop a b)= KRSimplifyTop_Prop (KREq_DefMethT_Prop (KRSimplify_DefMethT a) (KRSimplify_DefMethT b)).
@@ -196,7 +196,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KREq_DefMethT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KREq_DefMethT_Prop : KRSimplify.
 
 Theorem KRSimplify_Prop_KREq_Rule_Prop: forall a b,
      KRSimplify_Prop (KREq_Rule_Prop a b)= KRSimplifyTop_Prop (KREq_Rule_Prop (KRSimplify_Rule a) (KRSimplify_Rule b)).
@@ -204,7 +204,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_Prop_KREq_Rule_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_Prop_KREq_Rule_Prop : KRSimplify.
 
 Theorem sdisjPrefix_false: forall p1 p2 s1 s2,
     sdisjPrefix (srev s1) (srev s2)=true -> False=(p1++s1=p2++s2)%string.
@@ -213,120 +213,120 @@ Admitted.
 Theorem my_in_app_iff: forall A (a:A) (l1:list A) (l2:list A), (@In A a (l1++l2)) = (@In A a l1 \/ @In A a l2).
 Admitted.
 
-Hint Rewrite my_in_app_iff : kami_rewrite_db.
+#[export] Hint Rewrite my_in_app_iff : kami_rewrite_db.
 
 Theorem my_DisjKey_Append1:
   forall T Q (x:list (T*Q)) y z,
   (DisjKey (x++y) z)=(DisjKey x z /\ DisjKey y z).
 Admitted.
 
-Hint Rewrite my_DisjKey_Append1 : kami_rewrite_db.
+#[export] Hint Rewrite my_DisjKey_Append1 : kami_rewrite_db.
 
 Theorem my_DisjKey_Append2:
     forall T Q (x:list (T*Q)) y z,
            (DisjKey x (y++z))=(DisjKey x y /\ DisjKey x z).
 Admitted.
 
-Hint Rewrite my_DisjKey_Append2 : kami_rewrite_db.
+#[export] Hint Rewrite my_DisjKey_Append2 : kami_rewrite_db.
 
 Theorem my_DisjKey_In_map2:
   forall A B a (k:A) r l, @DisjKey A B a ((k,r)::l)=(~List.In k (List.map fst a) /\ (DisjKey a l)).
 Admitted.
 
-Hint Rewrite my_DisjKey_In_map2 : kami_rewrite_db.
+#[export] Hint Rewrite my_DisjKey_In_map2 : kami_rewrite_db.
 
 Theorem my_DisjKey_In_map1: forall A B b (k:A) r l,
     (@DisjKey A B ((k,r)::l) b)=(~List.In k (List.map fst b) /\ (DisjKey l b)).
 Admitted.
 
-Hint Rewrite my_DisjKey_In_map1 : kami_rewrite_db.
+#[export] Hint Rewrite my_DisjKey_In_map1 : kami_rewrite_db.
 
 Theorem my_DisjKey_In_map_fst2: forall A B a (f:(A*B)) l,
     @DisjKey A B a (f::l)=(~List.In (fst f) (List.map fst a) /\ (DisjKey a l)).
 Admitted.
 
-Hint Rewrite my_DisjKey_In_map_fst2 : kami_rewrite_db.
+#[export] Hint Rewrite my_DisjKey_In_map_fst2 : kami_rewrite_db.
 
 Theorem my_DisjKey_In_map_fst1: forall A B b (f:(A*B)) l (W:forall (a1:A) (a2:A), {a1=a2}+{a1<>a2}),
     @DisjKey A B (f::l) b=(~List.In (fst f) (List.map fst b) /\ (DisjKey l b)).
 Admitted.
     
-Hint Rewrite my_DisjKey_In_map_fst1 : kami_rewrite_db.
+#[export] Hint Rewrite my_DisjKey_In_map_fst1 : kami_rewrite_db.
 
 Theorem my_and_true1: forall p, (p /\ True)=p.
 Admitted.
 
-Hint Rewrite my_and_true1 : kami_rewrite_db.
+#[export] Hint Rewrite my_and_true1 : kami_rewrite_db.
 
 Theorem my_and_false1: forall p, (p /\ False)=False.
 Admitted.
 
-Hint Rewrite my_and_false1 : kami_rewrite_db.
+#[export] Hint Rewrite my_and_false1 : kami_rewrite_db.
 
 Theorem my_and_true2: forall p, (True /\ p )=p.
 Admitted.
 
-Hint Rewrite my_and_true2 : kami_rewrite_db.
+#[export] Hint Rewrite my_and_true2 : kami_rewrite_db.
 
 Theorem my_and_false2: forall p, (False /\ p)=False.
 Admitted.
 
-Hint Rewrite my_and_false2 : kami_rewrite_db.
+#[export] Hint Rewrite my_and_false2 : kami_rewrite_db.
 
 Theorem my_or_true1: forall p, (p \/ True)=True.
 Admitted.
 
-Hint Rewrite my_or_true1 : kami_rewrite_db.
+#[export] Hint Rewrite my_or_true1 : kami_rewrite_db.
 
 Theorem my_or_false1: forall p, (p \/ False)=p.
 Admitted.
 
-Hint Rewrite my_or_false1 : kami_rewrite_db.
+#[export] Hint Rewrite my_or_false1 : kami_rewrite_db.
 
 Theorem my_or_true2: forall p, (True \/ p )=True.
 Admitted.
 
-Hint Rewrite my_or_true2 : kami_rewrite_db.
+#[export] Hint Rewrite my_or_true2 : kami_rewrite_db.
 
 Theorem my_or_false2: forall p, (False \/ p)=p.
 Admitted.
 
-Hint Rewrite my_or_false2 : kami_rewrite_db.
+#[export] Hint Rewrite my_or_false2 : kami_rewrite_db.
 
 Theorem my_not_not: forall p, (~ (~ p))=p.
 Admitted.
 
-Hint Rewrite my_not_not : kami_rewrite_db.
+#[export] Hint Rewrite my_not_not : kami_rewrite_db.
 
 Theorem my_not_and_or: forall p q, (~ (p /\ q)) = ((~p) \/ (~q)).
 Admitted.
 
-Hint Rewrite my_not_and_or : kami_rewrite_db.
+#[export] Hint Rewrite my_not_and_or : kami_rewrite_db.
 
 Theorem my_not_or_and: forall p q, (~ (p \/ q)) = ((~p) /\ (~q)).
 Admitted.
 
-Hint Rewrite my_not_or_and : kami_rewrite_db.
+#[export] Hint Rewrite my_not_or_and : kami_rewrite_db.
 
 Theorem my_DisjKey_nil1 : forall A B (x:list (A*B)), DisjKey [] x=True.
 Admitted.
 
-Hint Rewrite my_DisjKey_nil1 : kami_rewrite_db.
+#[export] Hint Rewrite my_DisjKey_nil1 : kami_rewrite_db.
 
 Theorem my_DisjKey_nil2 : forall A B (x:list (A*B)), DisjKey x []=True.
 Admitted.
 
-Hint Rewrite my_DisjKey_nil2 : kami_rewrite_db.
+#[export] Hint Rewrite my_DisjKey_nil2 : kami_rewrite_db.
 
 Theorem my_not_true_false : (~ True) = False.
 Admitted.
 
-Hint Rewrite my_not_true_false : kami_rewrite_db.
+#[export] Hint Rewrite my_not_true_false : kami_rewrite_db.
 
 Theorem my_not_false_true : (~ False) = True.
 Admitted.
 
-Hint Rewrite my_not_false_true : kami_rewrite_db.
+#[export] Hint Rewrite my_not_false_true : kami_rewrite_db.
 
 Theorem my_eq_refl : forall A (a:A) (b:A), (a=b)=(b=a).
 Admitted.
@@ -354,7 +354,7 @@ Proof.
     apply my_eq_refl.
 Qed.
 
-Hint Rewrite KRSimplifyTopSound_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplifyTopSound_Prop : KRSimplify.
 
 Theorem KRSimplifySound_Prop: forall e,
     KRExprDenote_Prop (KRSimplify_Prop e) = KRExprDenote_Prop e.
@@ -362,7 +362,7 @@ Proof.
     induction e; try (autorewrite with KRSimplify); try (simpl); try (rewrite IHe1); try (rewrite IHe2); try (rewrite IHe); try (autorewrite with KRSimplify); try (reflexivity).
 Qed.
 
-Hint Rewrite KRSimplifySound_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_Prop : KRSimplify.
 
 (*Goal forall (a:ModuleElt) (b:list ModuleElt) c, app (cons a b) c=cons a (app b c).
   intros.

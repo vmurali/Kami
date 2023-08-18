@@ -45,12 +45,12 @@ Definition KRSimplifyTop_ImplProp (e: KRExpr_Prop) : KRExpr_Prop :=
                                  end
                           end
   | KRAnd_Prop a KRTrue_Prop => a
-  | KRAnd_Prop a KRFalse_Prop => KRFalse_Prop
+  | KRAnd_Prop _ KRFalse_Prop => KRFalse_Prop
   | KRAnd_Prop KRTrue_Prop a => a
-  | KRAnd_Prop KRFalse_Prop a => KRFalse_Prop
-  | KROr_Prop a KRTrue_Prop => KRTrue_Prop
+  | KRAnd_Prop KRFalse_Prop _ => KRFalse_Prop
+  | KROr_Prop _ KRTrue_Prop => KRTrue_Prop
   | KROr_Prop a KRFalse_Prop => a
-  | KROr_Prop KRTrue_Prop a => KRTrue_Prop
+  | KROr_Prop KRTrue_Prop _ => KRTrue_Prop
   | KROr_Prop KRFalse_Prop a => a
   | KRNot_Prop (KRTrue_Prop) => KRFalse_Prop
   | KRNot_Prop (KRFalse_Prop) => KRTrue_Prop
@@ -101,7 +101,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KRAnd_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KRAnd_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KROr_Prop: forall a b,
      KRSimplify_ImplProp (KROr_Prop a b)= KRSimplifyTop_ImplProp (KROr_Prop (KRSimplify_ImplProp a) (KRSimplify_ImplProp b)).
@@ -109,7 +109,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KROr_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KROr_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KRNot_Prop: forall a,
      KRSimplify_ImplProp (KRNot_Prop a)= KRSimplifyTop_ImplProp (KRNot_Prop (KRSimplify_ImplProp a)).
@@ -117,7 +117,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KRNot_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KRNot_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KRIn_string_Prop: forall a b,
      KRSimplify_ImplProp (KRIn_string_Prop a b)= KRSimplifyTop_ImplProp (KRIn_string_Prop (KRSimplify_string a) (KRSimplify_list_string b)).
@@ -125,7 +125,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KRIn_string_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KRIn_string_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KRIn_RegInitT_Prop: forall a b,
      KRSimplify_ImplProp (KRIn_RegInitT_Prop a b)= KRSimplifyTop_ImplProp (KRIn_RegInitT_Prop (KRSimplify_RegInitT a) (KRSimplify_list_RegInitT b)).
@@ -133,7 +133,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KRIn_RegInitT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KRIn_RegInitT_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KRIn_DefMethT_Prop: forall a b,
      KRSimplify_ImplProp (KRIn_DefMethT_Prop a b)= KRSimplifyTop_ImplProp (KRIn_DefMethT_Prop (KRSimplify_DefMethT a) (KRSimplify_list_DefMethT b)).
@@ -141,7 +141,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KRIn_DefMethT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KRIn_DefMethT_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KRIn_Rule_Prop: forall a b,
      KRSimplify_ImplProp (KRIn_Rule_Prop a b)= KRSimplifyTop_ImplProp (KRIn_Rule_Prop (KRSimplify_Rule a) (KRSimplify_list_Rule b)).
@@ -149,7 +149,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KRIn_Rule_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KRIn_Rule_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KRDisjKey_RegInitT_Prop: forall a b,
      KRSimplify_ImplProp (KRDisjKey_RegInitT a b)= KRSimplifyTop_ImplProp (KRDisjKey_RegInitT (KRSimplify_list_RegInitT a) (KRSimplify_list_RegInitT b)).
@@ -157,7 +157,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KRDisjKey_RegInitT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KRDisjKey_RegInitT_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KRDisjKey_DefMethT_Prop: forall a b,
      KRSimplify_ImplProp (KRDisjKey_DefMethT a b)= KRSimplifyTop_ImplProp (KRDisjKey_DefMethT (KRSimplify_list_DefMethT a) (KRSimplify_list_DefMethT b)).
@@ -165,7 +165,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KRDisjKey_DefMethT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KRDisjKey_DefMethT_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KRDisjKey_Rule_Prop: forall a b,
      KRSimplify_ImplProp (KRDisjKey_Rule a b)= KRSimplifyTop_ImplProp (KRDisjKey_Rule (KRSimplify_list_Rule a) (KRSimplify_list_Rule b)).
@@ -173,7 +173,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KRDisjKey_Rule_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KRDisjKey_Rule_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KREq_string_Prop: forall a b,
      KRSimplify_ImplProp (KREq_string_Prop a b)= KRSimplifyTop_ImplProp (KREq_string_Prop (KRSimplify_string a) (KRSimplify_string b)).
@@ -181,7 +181,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KREq_string_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KREq_string_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KREq_RegInitT_Prop: forall a b,
      KRSimplify_ImplProp (KREq_RegInitT_Prop a b)= KRSimplifyTop_ImplProp (KREq_RegInitT_Prop (KRSimplify_RegInitT a) (KRSimplify_RegInitT b)).
@@ -189,7 +189,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KREq_RegInitT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KREq_RegInitT_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KREq_DefMethT_Prop: forall a b,
      KRSimplify_ImplProp (KREq_DefMethT_Prop a b)= KRSimplifyTop_ImplProp (KREq_DefMethT_Prop (KRSimplify_DefMethT a) (KRSimplify_DefMethT b)).
@@ -197,7 +197,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KREq_DefMethT_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KREq_DefMethT_Prop : KRSimplify.
 
 Theorem KRSimplify_ImplProp_KREq_Rule_Prop: forall a b,
      KRSimplify_ImplProp (KREq_Rule_Prop a b)= KRSimplifyTop_ImplProp (KREq_Rule_Prop (KRSimplify_Rule a) (KRSimplify_Rule b)).
@@ -205,7 +205,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_ImplProp_KREq_Rule_Prop : KRSimplify.
+#[export] Hint Rewrite KRSimplify_ImplProp_KREq_Rule_Prop : KRSimplify.
 
 Theorem sdisjPrefix_false': forall p1 p2 s1 s2,
     sdisjPrefix (srev s1) (srev s2)=true -> (p1++s1=p2++s2)%string -> False.
@@ -1042,7 +1042,7 @@ Proof.
       apply H.
 Qed.
 
-Hint Rewrite KRSimplifySound_ImplProp : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_ImplProp : KRSimplify.
 
 (*Goal forall (a:ModuleElt) (b:list ModuleElt) c, app (cons a b) c=cons a (app b c).
   intros.

@@ -6,6 +6,7 @@ Export ListNotations.
 
 Require Import Permutation.
 Require Import ZArith.
+Require Import Psatz.
 
 Global Set Implicit Arguments.
 Global Set Asymmetric Patterns.
@@ -50,7 +51,7 @@ Fixpoint getDefaultConst (k: Kind): ConstT k :=
 
 Notation Default := (getDefaultConst _).
 
-Fixpoint getDefaultConstFullKind (k : FullKind) : ConstFullT k :=
+Definition getDefaultConstFullKind (k : FullKind) : ConstFullT k :=
   match k with
   | SyntaxKind k' => SyntaxConst (getDefaultConst k')
   | NativeKind t c' => NativeConst c'
@@ -235,7 +236,7 @@ Section Phoas.
         match Compare_dec.lt_dec ni no with
         | left isLt => castBits _ (@SignExtend ni (no - ni) e)
         | right isGe => UniBit (TruncLsb no (ni - no)) (castBits _ e)
-        end; abstract Omega.omega.
+        end; abstract lia.
     Defined.
     
     Definition ZeroExtendTruncMsb ni no (e: Expr (SyntaxKind (Bit ni))):
@@ -253,7 +254,7 @@ Section Phoas.
         match Compare_dec.lt_dec ni no with
         | left isLt => castBits _ (@SignExtend ni (no - ni) e)
         | right isGe => UniBit (TruncMsb (ni - no) no) (castBits _ e)
-        end; abstract Omega.omega.
+        end; abstract lia.
     Defined.
     
     Fixpoint countLeadingZeros ni no: Expr (SyntaxKind (Bit ni)) -> Expr (SyntaxKind (Bit no)).
@@ -537,7 +538,7 @@ Definition getRegisters m :=
   | BaseMod regs rules dms => regs
   end.
 
-Fixpoint getRules m :=
+Definition getRules m :=
   match m with
   | BaseRegFile rf => nil
   | BaseMod regs rules dms => rules
@@ -682,7 +683,7 @@ Definition getRegFileMethods m :=
                    end
   end.
 
-Fixpoint getMethods m :=
+Definition getMethods m :=
   match m with
   | BaseRegFile rf => getRegFileMethods rf
   | BaseMod regs rules dms => dms
@@ -2440,7 +2441,7 @@ Proof.
 Defined.
 
 Create HintDb KamiDb.
-Hint Unfold 
+#[export] Hint Unfold 
      inlineSingle_Meths_pos
      flatten_inline_remove 
      getHidden

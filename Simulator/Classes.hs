@@ -19,7 +19,7 @@ class StringMap m where
     map_of_list :: [(String,v)] -> m v
 
 map_inserts :: StringMap m => [(String,v)] -> m v -> m v
-map_inserts ps m = foldr (\(k,v) m' -> map_insert k v m') m ps
+map_inserts ps m = Prelude.foldr (\(k,v) m' -> map_insert k v m') m ps
 
 class Functor v => Vec v where
     vector_index :: Int -> v a -> a
@@ -31,7 +31,7 @@ class Functor v => Vec v where
     vector_length :: v a -> Int
 
 vector_writes :: Vec v => [(Int,a)] -> v a -> v a
-vector_writes ps v = foldr (\(i,x) v' -> vector_write v' i x) v ps
+vector_writes ps v = Prelude.foldr (\(i,x) v' -> vector_write v' i x) v ps
 
 class Array arr where
     array_replicate :: Int -> a -> IO (arr a)
@@ -41,7 +41,7 @@ class Array arr where
     array_length :: arr a -> IO Int
 
 array_writes :: Array arr => [(Int,a)] -> arr a -> IO ()
-array_writes ps v = forM_ ps (\(i,a) -> array_write v i a)
+array_writes ps v = Control.Monad.forM_ ps (\(i,a) -> array_write v i a)
 
 {- instances -}
 
@@ -70,7 +70,7 @@ instance StringMap (Map.Map String) where
 
 instance Vec Vector where
     vector_index = flip (!)
-    vector_eq = \f a1 a2 -> foldr (&&) True $ V.zipWith f a1 a2
+    vector_eq = \f a1 a2 -> Prelude.foldr (&&) True $ V.zipWith f a1 a2
     vector_of_list = fromList
     list_of_vector = toList
     vector_slice = V.slice

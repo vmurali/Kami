@@ -1,4 +1,4 @@
-Require Import String Coq.Lists.List Omega Fin Eqdep Bool Coq.ZArith.Zdiv Lia.
+Require Import String Coq.Lists.List Fin Eqdep Bool Coq.ZArith.Zdiv Lia.
 Require Import Coq.Arith.Even.
 Require Import Coq.Arith.Div2.
 Require Import Coq.NArith.NArith.
@@ -99,7 +99,7 @@ Section nth_Fin.
        | Fin.FS _ z => fun pf => nth_Fin'' xs _ _ z
        end _
     end _).
-    all: cbn in *; abstract omega.
+    all: cbn in *; abstract lia.
   Defined.
 
   Lemma nth_Fin'_nth : forall n d (i: Fin.t n) (xs: list A) (len_eq: n = length xs),
@@ -406,7 +406,7 @@ Proof.
   induction sz; simpl; auto; intros; repeat f_equal.
   - rewrite Nat.add_0_r; auto.
   - specialize (IHsz (S n)).
-    assert (sth: S n + sz = n + S sz) by omega.
+    assert (sth: S n + sz = n + S sz) by lia.
     rewrite <- sth.
     rewrite <- IHsz.
     auto.
@@ -776,6 +776,7 @@ Proof.
   eapply IHi; eauto.
 Qed.
 
+Set Firstorder Solver auto with *.
 (* fold_right *)
 Section list.
   Variable A: Type.
@@ -1435,7 +1436,7 @@ Section filter.
   Lemma filter_length_le: forall ls, length (filter g ls) <= length ls.
   Proof.
     induction ls; simpl; intros; auto.
-    destruct (g a); simpl; try omega.
+    destruct (g a); simpl; try lia.
   Qed.
 
   Lemma filter_length_same: forall ls, length (filter g ls) = length ls -> filter g ls = ls.
@@ -1444,7 +1445,7 @@ Section filter.
     destruct (g a); f_equal.
     - apply IHls; auto.
     - pose proof (filter_length_le ls).
-      Omega.omega.
+      lia.
   Qed.
 
   Lemma map_filter B (f: A -> B): forall ls,
@@ -1697,8 +1698,8 @@ Proof.
   induction n; simpl; intros; auto.
   - rewrite length_zero_iff_nil in *; subst; auto.
   - destruct l1, l2; simpl in *; try discriminate.
-    specialize (IHn l1 l2 ltac:(Omega.omega) ltac:(Omega.omega)).
-    Omega.omega.
+    specialize (IHn l1 l2 ltac:(lia) ltac:(lia)).
+    lia.
 Qed.
 
 Lemma zip4_length A B C D n:
@@ -1725,7 +1726,7 @@ Qed.
 (*   - destruct t; auto. *)
 (*     rewrite seq_length. *)
 (*     auto. *)
-(*   - specialize (IHt b ltac:(Omega.omega)). *)
+(*   - specialize (IHt b ltac:(lia)). *)
 (*     rewrite seq_length. *)
 (*     destruct b; auto. *)
 (* Qed. *)
@@ -1738,10 +1739,10 @@ Lemma nth_combine A B n:
               nth i (List.combine l1 l2) (a,b) = (nth i l1 a, nth i l2 b).
 Proof.
   induction n; simpl; auto; intros.
-  - Omega.omega.
+  - lia.
   - destruct l1, l2; simpl in *; try discriminate.
     destruct i; simpl in *; auto.
-    specialize (IHn l1 l2 a b ltac:(Omega.omega) ltac:(Omega.omega) i ltac:(Omega.omega)); auto.
+    specialize (IHn l1 l2 a b ltac:(lia) ltac:(lia) i ltac:(lia)); auto.
 Qed.
 
 Lemma nth_zip4 A B C D n:
@@ -1793,8 +1794,8 @@ Lemma log2_up_pow2 n:
   (n <= Nat.pow 2 (Nat.log2_up n))%nat.
 Proof.
   destruct n; simpl; auto.
-  pose proof (Nat.log2_log2_up_spec (S n) ltac:(Omega.omega)).
-  Omega.omega.
+  pose proof (Nat.log2_log2_up_spec (S n) ltac:(lia)).
+  lia.
 Qed.
 
 Lemma append_remove_prefix a:
@@ -2022,9 +2023,9 @@ Section Forall.
       nth_error ys n = Some y ->
       P2 x y.
   Proof.
-    induction 1; cbn; intros * Hn Hx Hy; [omega |].
+    induction 1; cbn; intros * Hn Hx Hy; [lia |].
     destruct n; cbn in *; [inv Hx; inv Hy; auto |].
-    eapply IHForall2; eauto; omega.
+    eapply IHForall2; eauto; lia.
   Qed.
 
   Lemma Forall2_nth : forall xs ys d d',
@@ -2032,9 +2033,9 @@ Section Forall.
     forall n, (n < length xs)%nat ->
       P2 (nth n xs d) (nth n ys d').
   Proof.
-    induction 1; cbn; intros * Hn; [omega |].
+    induction 1; cbn; intros * Hn; [lia |].
     destruct n; auto.
-    apply IHForall2; omega.
+    apply IHForall2; lia.
   Qed.
 End Forall.
 
@@ -2339,7 +2340,7 @@ Section strong.
 
   Lemma strong' : forall n m, m <= n -> P m.
     induction n; simpl; intuition; apply PH; intuition.
-    elimtype False; omega.
+    elimtype False; lia.
   Qed.
 
   Theorem strong : forall n, P n.
@@ -2353,7 +2354,6 @@ Theorem div2_odd : forall n,
   induction n as [n] using strong; simpl; intuition.
 
   destruct n as [|n]; simpl in *; intuition.
-  discriminate.
   destruct n as [|n]; simpl in *; intuition.
   do 2 f_equal.
   replace (Nat.div2 n + S (Nat.div2 n + 0)) with (S (Nat.div2 n + (Nat.div2 n + 0))); auto.
@@ -2366,7 +2366,6 @@ Theorem div2_even : forall n,
 
   destruct n as [|n]; simpl in *; intuition.
   destruct n as [|n]; simpl in *; intuition.
-  discriminate.
   f_equal.
   replace (Nat.div2 n + S (Nat.div2 n + 0)) with (S (Nat.div2 n + (Nat.div2 n + 0))); auto.
 Qed.
@@ -2384,7 +2383,7 @@ Theorem drop_mod2 : forall n k,
   rewrite <- plus_n_Sm.
   repeat rewrite untimes2 in *.
   simpl; auto.
-  apply H; omega.
+  apply H; lia.
 Qed.
 
 Theorem div2_minus_2 : forall n k,
@@ -2397,7 +2396,7 @@ Theorem div2_minus_2 : forall n k,
 
         destruct k; simpl in *; intuition.
         rewrite <- plus_n_Sm.
-        apply H; omega.
+        apply H; lia.
         Qed.
 
 Theorem div2_bound : forall k n,
@@ -2406,10 +2405,10 @@ Theorem div2_bound : forall k n,
   intros ? n H; case_eq (mod2 n); intro Heq.
 
   rewrite (div2_odd _ Heq) in H.
-  omega.
+  lia.
 
   rewrite (div2_even _ Heq) in H.
-  omega.
+  lia.
   Qed.
 
 Lemma two_times_div2_bound: forall n, 2 * Nat.div2 n <= n.
@@ -2420,18 +2419,18 @@ Proof.
   - destruct n.
     + simpl. constructor. constructor.
     + simpl (Nat.div2 (S (S n))).
-      specialize (IH n). omega.
+      specialize (IH n). lia.
 Qed.
 
 Lemma div2_compat_lt_l: forall a b, b < 2 * a -> Nat.div2 b < a.
 Proof.
   induction a; intros.
-  - omega.
+  - lia.
   - destruct b.
-    + simpl. omega.
+    + simpl. lia.
     + destruct b.
-      * simpl. omega.
-      * simpl. apply lt_n_S. apply IHa. omega.
+      * simpl; lia.
+      * simpl; specialize (IHa b); lia.
 Qed.
 
 (* otherwise b is made implicit, while a isn't, which is weird *)
@@ -2455,14 +2454,14 @@ Lemma mult_pow2_bound: forall a b x y,
 Proof.
   intros.
   rewrite pow2_add_mul.
-  apply Nat.mul_lt_mono_nonneg; omega.
+  apply Nat.mul_lt_mono_nonneg; lia.
 Qed.
 
 Lemma mult_pow2_bound_ex: forall a c x y,
     x < Nat.pow 2 a -> y < Nat.pow 2 (c - a) -> c >= a -> x * y < Nat.pow 2 c.
 Proof.
   intros.
-  replace c with (a + (c - a)) by omega.
+  replace c with (a + (c - a)) by lia.
   apply mult_pow2_bound; auto.
 Qed.
 
@@ -2472,21 +2471,21 @@ Proof.
   induction c; intros.
   rewrite Nat.mul_1_r; auto.
   rewrite Nat.mul_succ_r.
-  apply lt_plus_trans.
-  apply IHc; auto.
+  specialize (IHc a b).
+  lia.
 Qed.
 
 Lemma lt_mul_mono : forall a b c,
     c <> 0 -> a < b -> a < b * c.
 Proof.
   intros.
-  replace c with (S (c - 1)) by omega.
+  replace c with (S (c - 1)) by lia.
   apply lt_mul_mono'; auto.
 Qed.
 
 Lemma zero_lt_pow2 : forall sz, 0 < Nat.pow 2 sz.
 Proof.
-  induction sz; simpl; omega.
+  induction sz; simpl; lia.
 Qed.
 
 Lemma one_lt_pow2:
@@ -2495,21 +2494,21 @@ Lemma one_lt_pow2:
 Proof.
   intros.
   induction n.
-  simpl; omega.
+  simpl; lia.
   remember (S n); simpl.
-  omega.
+  lia.
 Qed.
 
 Lemma one_le_pow2 : forall sz, 1 <= Nat.pow 2 sz.
 Proof.
-  intros. pose proof (zero_lt_pow2 sz). omega.
+  intros. pose proof (zero_lt_pow2 sz). lia.
 Qed.
 
 Lemma pow2_ne_zero: forall n, Nat.pow 2 n <> 0.
 Proof.
   intros.
   pose proof (zero_lt_pow2 n).
-  omega.
+  lia.
 Qed.
 
 Lemma mul2_add : forall n, n * 2 = n + n.
@@ -2524,18 +2523,18 @@ Proof.
   rewrite pow2_add_mul.
   repeat rewrite mul2_add.
   pose proof (zero_lt_pow2 sz).
-  omega.
+  lia.
 Qed.
 
 Lemma pow2_bound_mono: forall a b x,
     x < Nat.pow 2 a -> a <= b -> x < Nat.pow 2 b.
 Proof.
   intros.
-  replace b with (a + (b - a)) by omega.
+  replace b with (a + (b - a)) by lia.
   rewrite pow2_add_mul.
   apply lt_mul_mono; auto.
   pose proof (zero_lt_pow2 (b - a)).
-  omega.
+  lia.
 Qed.
 
 Lemma pow2_inc : forall n m,
@@ -2594,9 +2593,9 @@ Proof.
   induction n.
   simpl.
   rewrite Nat.add_0_r.
-  replace (k + k) with (2 * k) by omega.
+  replace (k + k) with (2 * k) by lia.
   apply mod2_double.
-  replace (S n + 2 * k) with (S (n + 2 * k)) by omega.
+  replace (S n + 2 * k) with (S (n + 2 * k)) by lia.
   apply mod2_S_eq; auto.
 Qed.
 
@@ -2610,21 +2609,21 @@ Proof.
   apply strong.
   intros c IH a b AB N.
   destruct c.
-  - assert (a=b) by omega. subst. rewrite Bool.xorb_nilpotent. reflexivity.
+  - assert (a=b) by lia. subst. rewrite Bool.xorb_nilpotent. reflexivity.
   - destruct c.
-    + assert (a = S b) by omega. subst a. simpl (mod2 1). rewrite mod2_S_not.
+    + assert (a = S b) by lia. subst a. simpl (mod2 1). rewrite mod2_S_not.
       destruct (mod2 b); reflexivity.
-    + destruct a; [omega|].
-      destruct a; [omega|].
+    + destruct a; [lia|].
+      destruct a; [lia|].
       simpl.
-      apply IH; omega.
+      apply IH; lia.
 Qed.
 
 Theorem mod2_pow2_twice: forall n,
     mod2 (Nat.pow 2 n + (Nat.pow 2 n + 0)) = false.
 Proof.
   intros.
-  replace (Nat.pow 2 n + (Nat.pow 2 n + 0)) with (2 * Nat.pow 2 n) by omega.
+  replace (Nat.pow 2 n + (Nat.pow 2 n + 0)) with (2 * Nat.pow 2 n) by lia.
   apply mod2_double.
 Qed.
 
@@ -2634,38 +2633,39 @@ Proof.
   induction n; intros.
   simpl.
   rewrite Nat.add_0_r.
-  replace (k + k) with (2 * k) by omega.
+  replace (k + k) with (2 * k) by lia.
   apply div2_double.
-  replace (S n + 2 * k) with (S (n + 2 * k)) by omega.
-  destruct (Even.even_or_odd n).
-  - rewrite <- even_div2.
-    rewrite <- even_div2 by auto.
+  replace (S n + 2 * k) with (S (n + 2 * k)) by lia.
+  destruct (Nat.Even_or_Odd n).
+  - rewrite <- Nat.Even_div2.
+    rewrite <- Nat.Even_div2 by auto.
     apply IHn.
-    apply Even.even_even_plus; auto.
-    apply Even.even_mult_l; repeat constructor.
-
-  - rewrite <- odd_div2.
-    rewrite <- odd_div2 by auto.
+    apply Nat.Even_Even_add; auto.
+    apply Nat.Even_mul_l; repeat constructor.
+    exists 1; lia.
+  - rewrite <- Nat.Odd_div2.
+    rewrite <- Nat.Odd_div2 by auto.
     rewrite IHn.
-    omega.
-    apply Even.odd_plus_l; auto.
-    apply Even.even_mult_l; repeat constructor.
+    lia.
+    apply Nat.Odd_add_l; auto.
+    apply Nat.Even_mul_l; repeat constructor.
+    exists 1; lia.
 Qed.
 
 Lemma pred_add:
   forall n, n <> 0 -> pred n + 1 = n.
 Proof.
-  intros; rewrite pred_of_minus; omega.
+  intros; lia.
 Qed.
 
 Lemma pow2_zero: forall sz, (Nat.pow 2 sz > 0)%nat.
 Proof.
-  induction sz; simpl; auto; omega.
+  induction sz; simpl; auto; lia.
 Qed.
 
-Section omega_compat.
+Section lia_compat.
 
-  Ltac omega ::= lia.
+  Ltac lia ::= lia.
 
   Theorem Npow2_nat : forall n, nat_of_N (Npow2 n) = Nat.pow 2 n.
     induction n as [|n IHn]; simpl; intuition.
@@ -2673,12 +2673,11 @@ Section omega_compat.
     case_eq (Npow2 n); intuition.
   Qed.
 
-End omega_compat.
+End lia_compat.
 
-Hint Rewrite Nplus_0_r nat_of_Nsucc nat_of_Nplus nat_of_Nminus
+#[export] Hint Rewrite Nplus_0_r nat_of_Nsucc nat_of_Nplus nat_of_Nminus
      N_of_nat_of_N nat_of_N_of_nat
      nat_of_P_o_P_of_succ_nat_eq_succ nat_of_P_succ_morphism : N.
-
 
 Theorem nat_of_N_eq : forall n m,
     nat_of_N n = nat_of_N m
@@ -2707,7 +2706,7 @@ Lemma pow2_S_z:
 Proof.
   intros.
   replace (2 * Z.of_nat (Nat.pow 2 n))%Z with
-      (Z.of_nat (Nat.pow 2 n) + Z.of_nat (Nat.pow 2 n))%Z by omega.
+      (Z.of_nat (Nat.pow 2 n) + Z.of_nat (Nat.pow 2 n))%Z by lia.
   simpl.
   repeat rewrite Nat2Z.inj_add.
   lia.
@@ -2717,13 +2716,13 @@ Lemma pow2_le:
   forall n m, (n <= m)%nat -> (Nat.pow 2 n <= Nat.pow 2 m)%nat.
 Proof.
   intros.
-  assert (exists s, n + s = m) by (exists (m - n); omega).
+  assert (exists s, n + s = m) by (exists (m - n); lia).
   destruct H0; subst.
   rewrite pow2_add_mul.
   pose proof (pow2_zero x).
-  replace (Nat.pow 2 n) with (Nat.pow 2 n * 1) at 1 by omega.
-  apply mult_le_compat_l.
-  omega.
+  replace (Nat.pow 2 n) with (Nat.pow 2 n * 1) at 1 by lia.
+  apply Nat.mul_le_mono_l.
+  lia.
 Qed.
 
 Lemma Zabs_of_nat:
@@ -2762,7 +2761,7 @@ Qed.
 Lemma minus_minus: forall a b c,
     c <= b <= a ->
     a - (b - c) = a - b + c.
-Proof. intros. omega. Qed.
+Proof. intros. lia. Qed.
 
 Lemma even_odd_destruct: forall n,
     (exists a, n = 2 * a) \/ (exists a, n = 2 * a + 1).
@@ -2770,8 +2769,8 @@ Proof.
   induction n.
   - left. exists 0. reflexivity.
   - destruct IHn as [[a E] | [a E]].
-    + right. exists a. omega.
-    + left. exists (S a). omega.
+    + right. exists a. lia.
+    + left. exists (S a). lia.
 Qed.
 
 Lemma mul_div_undo: forall i c,
@@ -2789,8 +2788,8 @@ Lemma mod_add_r: forall a b,
     b <> 0 ->
     (a + b) mod b = a mod b.
 Proof.
-  intros. rewrite <- Nat.add_mod_idemp_r by omega.
-  rewrite Nat.mod_same by omega.
+  intros. rewrite <- Nat.add_mod_idemp_r by lia.
+  rewrite Nat.mod_same by lia.
   rewrite Nat.add_0_r.
   reflexivity.
 Qed.
@@ -2801,7 +2800,7 @@ Proof.
   assert (n mod 2 < 2). {
     apply Nat.mod_upper_bound. congruence.
   }
-  omega.
+  lia.
 Qed.
 
 Lemma div_mul_undo: forall a b,
@@ -2811,9 +2810,9 @@ Lemma div_mul_undo: forall a b,
 Proof.
   intros.
   pose proof Nat.div_mul_cancel_l as A. specialize (A a 1 b).
-  replace (b * 1) with b in A by omega.
+  replace (b * 1) with b in A by lia.
   rewrite Nat.div_1_r in A.
-  rewrite mult_comm.
+  rewrite Nat.mul_comm.
   rewrite <- Nat.divide_div_mul_exact; try assumption.
   - apply A; congruence.
   - apply Nat.mod_divide; assumption.
@@ -2825,15 +2824,9 @@ Proof.
   change (S k) with (1 + k) in C.
   rewrite Nat.add_mod in C by congruence.
   pose proof (Nat.mod_upper_bound k 2).
-  assert (k mod 2 = 0 \/ k mod 2 = 1) as E by omega.
+  assert (k mod 2 = 0 \/ k mod 2 = 1) as E by lia.
   destruct E as [E | E]; [assumption|].
   rewrite E in C. simpl in C. discriminate.
-Qed.
-
-Lemma mod_0_r: forall (m: nat),
-    m mod 0 = 0.
-Proof.
-  intros. reflexivity.
 Qed.
 
 Lemma sub_mod_0: forall (a b m: nat),
@@ -2841,18 +2834,18 @@ Lemma sub_mod_0: forall (a b m: nat),
     b mod m = 0 ->
     (a - b) mod m = 0.
 Proof.
-  intros. assert (m = 0 \/ m <> 0) as C by omega. destruct C as [C | C].
-  - subst. apply mod_0_r.
-  - assert (a - b = 0 \/ b < a) as D by omega. destruct D as [D | D].
+  intros. assert (m = 0 \/ m <> 0) as C by lia. destruct C as [C | C].
+  - subst; simpl in *; lia.
+  - assert (a - b = 0 \/ b < a) as D by lia. destruct D as [D | D].
     + rewrite D. apply Nat.mod_0_l. assumption.
     + apply Nat2Z.inj. simpl.
-      rewrite Zdiv.mod_Zmod by assumption.
-      rewrite Nat2Z.inj_sub by omega.
+      rewrite Nat2Z.inj_mod by assumption.
+      rewrite Nat2Z.inj_sub by lia.
       rewrite Zdiv.Zminus_mod.
-      rewrite <-! Zdiv.mod_Zmod by assumption.
+      rewrite <-! Nat2Z.inj_mod by assumption.
       rewrite H. rewrite H0.
       apply Z.mod_0_l.
-      omega.
+      lia.
 Qed.
 
 Lemma mul_div_exact: forall (a b: nat),
@@ -2917,11 +2910,11 @@ Lemma nat_mul_cancel_l :
 Proof.
   induction a; intros.
   - rewrite <- mult_n_O in H0.
-    apply eq_sym, mult_is_O in H0.
+    apply eq_sym, Nat.eq_mul_0 in H0.
     destruct H0; subst; tauto.
   - induction b.
     + exfalso; rewrite <- mult_n_O in H0.
-      destruct (mult_is_O _ _ H0); lia.
+      lia.
     + repeat rewrite Nat.mul_succ_r in H0.
       rewrite Nat.add_cancel_r in H0.
       rewrite (IHa _ _ H H0); reflexivity.
@@ -2935,10 +2928,8 @@ Proof.
   intros.
   rewrite <- (Z2Nat.id n) at 1; auto.
   rewrite <- (Z2Nat.id m) at 1; [|lia].
-  rewrite <- div_Zdiv.
-  - rewrite Nat2Z.id; reflexivity.
-  - rewrite <- Z2Nat.inj_0; intro.
-    rewrite Z2Nat.inj_iff in H1; subst; lia.
+  rewrite <- Nat2Z.inj_div.
+  rewrite Nat2Z.id; reflexivity.
 Qed.
 
 Lemma Zmod_mod' (n m : Z) :
@@ -2949,10 +2940,8 @@ Proof.
   intros.
   rewrite <- (Z2Nat.id n) at 1; auto.
   rewrite <- (Z2Nat.id m) at 1; [|lia].
-  rewrite <- mod_Zmod.
+  rewrite <- Nat2Z.inj_mod.
   - rewrite Nat2Z.id; reflexivity.
-  - rewrite <- Z2Nat.inj_0; intro.
-    rewrite Z2Nat.inj_iff in H1; subst; lia.
 Qed.
 
 Lemma pow_divide :
@@ -2982,7 +2971,7 @@ Proof.
   induction s; simpl; auto.
   rewrite Nat.add_0_r.
   pose proof (pow2_zero s).
-  Omega.omega.
+  lia.
 Qed.
 
 Lemma one_lt_pow2' : forall n, n > 0 -> 1 < 2 ^ n.
@@ -3195,7 +3184,7 @@ Proof.
   - exfalso; simpl in H; lia.
   - simpl; rewrite IHn, snoc_rapp.
     + rewrite nth_error_app1; auto.
-      apply lt_S_n; assumption.
+      apply Nat.succ_lt_mono; assumption.
     + rewrite snoc_rapp, app_length; simpl in *; lia.
 Qed.
 
@@ -3245,9 +3234,9 @@ Proof.
   destruct l; intros.
   - repeat rewrite firstn_nil; reflexivity.
   - simpl; repeat rewrite snoc_rapp.
-    destruct (le_lt_or_eq _ _ H).
-    + simpl in H0.
-      apply lt_n_Sm_le in H0.
+    destruct (le_lt_eq_dec _ _ H).
+    + simpl in l0.
+      apply -> Nat.lt_succ_r in l0.
       repeat rewrite firstn_app'; auto.
       * rewrite firstn_all2; auto.
         apply firstn_le_length.
@@ -3329,8 +3318,8 @@ Proof.
               destruct (zerop x); auto.
               exfalso; subst; lia.
         -- specialize (Nat.mod_upper_bound (m + n) (S (length l)) ltac:(lia)) as P0.
-           apply lt_n_Sm_le in P0.
-           destruct (le_lt_or_eq _ _ P0) as [P1 | P1].
+           apply -> Nat.lt_succ_r in P0.
+           destruct (le_lt_eq_dec _ _ P0) as [P1 | P1].
            ++ rewrite app_length, Nat.add_1_r, nth_error_app1; auto.
               rewrite <- (Nat.add_1_l (m + n)), <- (Nat.add_mod_idemp_r 1 _); [|simpl; lia].
               rewrite (Nat.mod_small (1 + _)), (Nat.add_1_l ((m + n) mod _)); [simpl; auto|].
@@ -3390,17 +3379,9 @@ Proof.
   exists (b / c - a / c).
   rewrite Nat.mul_sub_distr_r, Nat.mul_comm.
   rewrite (Nat.mul_comm _ c).
-  rewrite <- (Nat.add_cancel_r _ _ (c * (b / c))), (Nat.add_comm (b - _) (c * (b / c))), le_plus_minus_r in H1.
-  - rewrite <- H1 at 1.
-    rewrite <- (Nat.add_cancel_r _ _ a), Nat.sub_add; try lia.
-    assert (c * (a / c) <= c * (b / c)).
-    { apply Nat.mul_le_mono_l.
-      apply Nat.div_le_mono; lia.
-    }
-    assert (c * (a / c) <= a).
-    { apply Nat.mul_div_le; assumption. }
-    lia.
-  - apply Nat.mul_div_le; assumption.
+  pose proof (Nat.mul_div_le a c H).
+  pose proof (Nat.mul_div_le b c H).
+  lia.
 Qed.
 
 Lemma seq_nth_error_Some size m n :
@@ -3409,9 +3390,9 @@ Lemma seq_nth_error_Some size m n :
 Proof.
   red; split.
   - induction size; intros; [lia|].
-    apply lt_n_Sm_le in H.
+    apply -> Nat.lt_succ_r in H.
     rewrite seq_eq.
-    destruct (le_lt_or_eq _ _ H).
+    destruct (le_lt_eq_dec _ _ H).
     + rewrite nth_error_app1; auto.
       rewrite seq_length; assumption.
     + rewrite nth_error_app2; subst.
@@ -3723,11 +3704,11 @@ Section FifoProps.
               = S (Z.to_nat ((enqP1 - deqP1) mod 2 ^ Z.of_nat (lgSize + 1)) - 1)) as TMP.
       { rewrite <- (Nat.add_1_r (Z.to_nat _ - _)), Nat.sub_add; auto.
         specialize (Nat.le_0_l (Z.to_nat ((enqP1 - deqP1) mod 2 ^ Z.of_nat (lgSize + 1)))) as P.
-        destruct (le_lt_or_eq _ _ P); try lia.
+        destruct (le_lt_eq_dec _ _ P); try lia.
         exfalso.
         apply n; rewrite <-cutLen_0_iff.
-        assert (0 = Z.to_nat 0) as TMP by lia; rewrite TMP in H at 1; clear TMP.
-        apply Z2Nat.inj in H; try lia.
+        assert (0 = Z.to_nat 0) as TMP by lia; rewrite TMP in e at 1; clear TMP.
+        apply Z2Nat.inj in e; try lia.
         apply Z.mod_pos_bound; lia. }
       rewrite TMP at 2; clear TMP.
       rewrite cutList_rotList_1, Z2Nat.inj_add, (Nat.add_comm (Z.to_nat deq)), rotateList_add;
@@ -3905,7 +3886,7 @@ Section FifoProps.
             repeat rewrite pow2_of_nat.
             rewrite sizePow2, Zmod_mod', Nat2Z.id, Nat.add_mod_idemp_r; try lia.
             rewrite <- (Z2Nat.id enqP1) at 2; try lia.
-            rewrite <- mod_Zmod, Nat2Z.id; try lia.
+            rewrite <- Nat2Z.inj_mod, Nat2Z.id; try lia.
             rewrite <- Z2Nat.inj_sub, <- Z2Nat.inj_add, Z.sub_add; lia.
         }
         rewrite P2.

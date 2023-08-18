@@ -7,7 +7,6 @@ import qualified Data.BitVector as BV
 import qualified Data.Text as T
 
 import Control.Monad
-import Data.Hashable
 import Data.Text.Read (hexadecimal)
 import System.Environment (getArgs)
 import System.IO.Unsafe (unsafePerformIO)

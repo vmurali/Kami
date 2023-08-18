@@ -3,6 +3,7 @@ Require Import Kami.Properties Kami.PProperties.
 Import ListNotations.
 Require Import Coq.Sorting.Permutation.
 Require Import Coq.Sorting.PermutEq.
+Require Import Psatz.
 Require Import RelationClasses Setoid Morphisms.
 Require Import ZArith Kami.Lib.EclecticLib.
 
@@ -1535,12 +1536,12 @@ Proof.
   - exists execs; reflexivity.
   - specialize (H a) as P1.
     rewrite getNumFromCalls_eq_cons in P1; auto.
-    assert ((0 < getNumFromExecs a execs)%Z) as P2;[specialize (getNumFromCalls_nonneg a calls) as TMP1;Omega.omega|].
+    assert ((0 < getNumFromExecs a execs)%Z) as P2;[specialize (getNumFromCalls_nonneg a calls) as TMP1;lia|].
     specialize (in_split _ _ (getNumFromExecs_gt_0 _ _ P2)) as TMP; dest.
     rewrite H0 in H; setoid_rewrite <-Permutation_middle in H.
     assert (forall f, (getNumFromCalls f calls <= getNumFromExecs f (x++x0))%Z).
     + intros; specialize (H f); destruct (MethT_dec f a);[rewrite getNumFromCalls_eq_cons, getNumFromExecs_eq_cons in H
-                                                         |rewrite getNumFromCalls_neq_cons, getNumFromExecs_neq_cons in H];auto;Omega.omega.
+                                                         |rewrite getNumFromCalls_neq_cons, getNumFromExecs_neq_cons in H];auto;lia.
     + specialize (IHcalls _ H1); dest.
       exists x1; rewrite H0, <-Permutation_middle.
       simpl; rewrite H2; reflexivity.
@@ -1563,15 +1564,15 @@ Proof.
         specialize (H0 _ H).
         rewrite getNumFromCalls_eq_cons in H0; auto.
         specialize (getNumFromCalls_nonneg g calls) as P1.
-        apply getNumFromExecs_gt_0; Omega.omega.
+        apply getNumFromExecs_gt_0; lia.
       * apply IHcalls; auto.
         intros f0 P1; specialize (H0 _ P1).
         destruct (MethT_dec f0 a);[rewrite getNumFromCalls_eq_cons in H0
-                                  |rewrite getNumFromCalls_neq_cons in H0]; auto; Omega.omega.
+                                  |rewrite getNumFromCalls_neq_cons in H0]; auto; lia.
     + apply IHcalls; auto.
       intros f0 P1; specialize (H0 _ P1).
         destruct (MethT_dec f0 a);[rewrite getNumFromCalls_eq_cons in H0
-                                  |rewrite getNumFromCalls_neq_cons in H0]; auto; Omega.omega.
+                                  |rewrite getNumFromCalls_neq_cons in H0]; auto; lia.
     Transparent prod_dec.
 Qed.
 
@@ -1590,13 +1591,13 @@ Proof.
       specialize (H0 a P1) as P2.
       rewrite getNumFromCalls_eq_cons in P2; auto.
       specialize (getNumFromCalls_nonneg a calls) as P3.
-      assert (0 < getNumFromExecs a execs)%Z as P4;[Omega.omega|].
+      assert (0 < getNumFromExecs a execs)%Z as P4;[lia|].
       specialize (getNumFromExecs_gt_0 _ _ P4) as P5; apply in_split in P5; dest.
       setoid_rewrite H1 in H0; setoid_rewrite <-Permutation_middle in H0.
       assert (forall f, In (fst f, projT1 (snd f)) (getKindAttr (getMethods m)) -> (getNumFromCalls f calls <= getNumFromExecs f (x++x0))%Z) as P5.
       * intros f0 HInDef; specialize (H0 _ HInDef).
         destruct (MethT_dec f0 a);[rewrite getNumFromCalls_eq_cons, getNumFromExecs_eq_cons in H0
-                                        |rewrite getNumFromCalls_neq_cons, getNumFromExecs_neq_cons in H0]; auto; Omega.omega.
+                                        |rewrite getNumFromCalls_neq_cons, getNumFromExecs_neq_cons in H0]; auto; lia.
       * specialize (IHcalls H _ P5); dest.
         exists x1.
         Opaque prod_dec.
@@ -1606,7 +1607,7 @@ Proof.
       apply IHcalls; auto.
       intros f0 HInDef; specialize (H0 _ HInDef).
       destruct (MethT_dec f0 a);[rewrite getNumFromCalls_eq_cons in H0
-                                |rewrite getNumFromCalls_neq_cons in H0]; auto; Omega.omega.
+                                |rewrite getNumFromCalls_neq_cons in H0]; auto; lia.
       Transparent prod_dec.
 Qed.
 
@@ -2003,7 +2004,7 @@ Corollary MatchingExecCalls_Base_subtract_fcalls m calls calls' execs execs' fca
 Proof.
   unfold MatchingExecCalls_flat; intros.
   specialize (H _ H2); rewrite H0, H1, getNumFromCalls_app, getNumFromExecs_app in H.
-  rewrite (call_execs_counts_eq f fcalls) in H; Omega.omega.
+  rewrite (call_execs_counts_eq f fcalls) in H; lia.
 Qed.
 
 Lemma PPlusStep_inline_Rule_NotIn f m o rn upds execs calls :
@@ -2202,7 +2203,7 @@ Proof.
       -- constructor; auto.
          unfold WeakInclusion_flat, getListFullLabel_diff_flat.
          split; intros.
-         ++ simpl;rewrite H6, H7, getNumFromExecs_app, getNumFromCalls_app, (call_execs_counts_eq); Omega.omega.
+         ++ simpl;rewrite H6, H7, getNumFromExecs_app, getNumFromCalls_app, (call_execs_counts_eq); lia.
          ++ simpl in *.
             destruct H9; exists x3.
             rewrite H6, in_app_iff; right; assumption.
@@ -2900,7 +2901,7 @@ Proof.
   unfold MatchingExecCalls_flat in *.
   simpl; rewrite SameKindAttr_inline_Meth; intros; specialize (H5 _ H9).
   rewrite H6, H7, getNumFromCalls_app, getNumFromExecs_app, call_execs_counts_eq in H5.
-  Omega.omega.
+  lia.
 Qed.
 
 Lemma PPlusSubsteps_inline_Meth_NotInDef f m o gn upds execs calls :
@@ -3064,7 +3065,7 @@ Proof.
         -- econstructor 2; eauto.
         -- constructor; auto.
            unfold WeakInclusion_flat, getListFullLabel_diff_flat; simpl; split; intros; auto.
-           ++ rewrite H6, H7, getNumFromExecs_app, getNumFromCalls_app, call_execs_counts_eq; Omega.omega.
+           ++ rewrite H6, H7, getNumFromExecs_app, getNumFromCalls_app, call_execs_counts_eq; lia.
            ++ dest; exists x3.
               rewrite ?H6, ?H7, in_app_iff; right; assumption.
       * exists ((upds, (execs, calls))::x); split.
@@ -3187,14 +3188,14 @@ Section transform_nth_right.
         transform_nth_right (inlineSingle_Meth f) i ls =
         inlineSingle_Meth_in_list f (fst val) ls.
   Proof.
-    induction ls; destruct i; simpl in *; auto; intros; try Omega.omega.
+    induction ls; destruct i; simpl in *; auto; intros; try lia.
     - exists a; repeat split; auto.
       rewrite String.eqb_refl.
       f_equal.
       inv H.
       apply Method_list_invariance; auto.
     - inv H.
-      specialize (IHls H4 i ltac:(Omega.omega)); dest.
+      specialize (IHls H4 i ltac:(lia)); dest.
       exists x.
       repeat split; auto.
       destruct (String.eqb (fst x) (fst a)) eqn:G.
@@ -3212,14 +3213,14 @@ Section transform_nth_right.
         transform_nth_right (inlineSingle_Rule f) i ls =
         inlineSingle_Rule_in_list f (fst val) ls.
   Proof.
-    induction ls; destruct i; simpl in *; auto; intros; try Omega.omega.
+    induction ls; destruct i; simpl in *; auto; intros; try lia.
     - exists a; repeat split; auto.
       rewrite String.eqb_refl.
       f_equal.
       inv H.
       apply Rule_list_invariance; auto.
     - inv H.
-      specialize (IHls H4 i ltac:(Omega.omega)); dest.
+      specialize (IHls H4 i ltac:(lia)); dest.
       exists x.
       repeat split; auto.
       destruct (String.eqb (fst x) (fst a)) eqn:G.
@@ -3233,7 +3234,7 @@ Section transform_nth_right.
       map fst (transform_nth_right (inlineSingle_Meth f) i ls) =
       map fst ls.
   Proof.
-    induction ls; destruct i; simpl in *; auto; intros; try Omega.omega.
+    induction ls; destruct i; simpl in *; auto; intros; try lia.
     - destruct a; simpl; reflexivity.
     - rewrite (IHls i); auto.
   Qed.
@@ -3243,7 +3244,7 @@ Section transform_nth_right.
       map fst (transform_nth_right (inlineSingle_Rule f) i ls) =
       map fst ls.
   Proof.
-    induction ls; destruct i; simpl in *; auto; intros; try Omega.omega.
+    induction ls; destruct i; simpl in *; auto; intros; try lia.
     - destruct a; simpl; reflexivity.
     - rewrite (IHls i); auto.
   Qed.
@@ -3253,8 +3254,8 @@ Section transform_nth_right.
       length ls <= i ->
       transform_nth_right f i ls = ls.
   Proof.
-    induction ls; destruct i; simpl in *; auto; intros; try Omega.omega.
-    rewrite (IHls i ltac:(Omega.omega)); reflexivity.
+    induction ls; destruct i; simpl in *; auto; intros; try lia.
+    rewrite (IHls i ltac:(lia)); reflexivity.
   Qed.
 End transform_nth_right.
 
@@ -4598,10 +4599,10 @@ Section flatten_and_inline_all.
       specialize (HHidden _ i).
       destruct H2; subst.
       + destruct H9; specialize (H1 (s, v)).
-        Omega.omega.
+        lia.
       + specialize (WeakInclusions_In_r _ H1 H7) as TMP; dest.
         specialize (H0 _ H2 _ i); destruct H5.
-        specialize (H5 (s, v)); Omega.omega.
+        specialize (H5 (s, v)); lia.
     - specialize (WeakInclusions_In_r _ H2 H1) as TMP; dest.
       assert (In (fst (s, v), projT1 (snd (s, v))) (getKindAttr (getAllMethods m'))) as P0.
       { simpl; assumption. }
@@ -5129,7 +5130,7 @@ Proof.
         unfold getNumExecs in H0; rewrite map_cons in H0.
         assert ((fst (snd (u, (Meth (fn, existT SignT (projT1 fb) (argV, retV)), cs)))) = Meth (fn, existT SignT (projT1 fb) (argV, retV))) as TMP; auto;
           rewrite TMP, getNumFromExecs_eq_cons in H0; clear TMP; auto.
-        specialize (getNumFromExecs_nonneg (fn, existT SignT (projT1 fb) (argV, retV)) (map PPT_execs ls)) as TMP; omega.
+        specialize (getNumFromExecs_nonneg (fn, existT SignT (projT1 fb) (argV, retV)) (map PPT_execs ls)) as TMP; lia.
       * unfold removeMeth; simpl; rewrite filter_In; split; auto.
         rewrite <- String.eqb_neq in n; simpl; rewrite n; reflexivity.
     + apply IHSubsteps; intros.
@@ -6129,7 +6130,7 @@ Proof.
   unfold MatchingExecCalls_flat in *; intros; specialize (IHfcalls _ H).
   destruct (MethT_dec f a);[rewrite getNumFromCalls_eq_cons, getNumFromExecs_eq_cons
                            |rewrite getNumFromCalls_neq_cons, getNumFromExecs_neq_cons]; auto.
-  omega.
+  lia.
 Qed.
 
 Lemma InRule_In_inlined_neq2 f rn1 rn2 rb m:
@@ -6292,7 +6293,7 @@ Proof.
          unfold WeakInclusion_flat, getListFullLabel_diff_flat.
          split; intros; simpl.
          ++ symmetry; rewrite getNumFromExecs_app, getNumFromCalls_app, (call_execs_counts_eq);
-            omega.
+            lia.
          ++ simpl in *.
             destruct H6; exists x1; rewrite in_app_iff in *.
             destruct H6; auto.
@@ -6812,7 +6813,7 @@ Proof.
   intros f0 P1.
   rewrite getNumFromCalls_app, getNumFromExecs_app, call_execs_counts_eq.
   specialize (H3 f0); simpl in *; rewrite SameKindAttr_inline_Meth in *.
-  specialize (H3 P1); omega.
+  specialize (H3 P1); lia.
 Qed.
 
 Lemma PPlusStrongTraceInclusion_inlining_Meths_l m f rn :
@@ -6831,7 +6832,7 @@ Proof.
     + constructor; auto.
       unfold WeakInclusion_flat; unfold getListFullLabel_diff_flat; simpl; split; intros.
       * rewrite getNumFromCalls_app, getNumFromExecs_app.
-        repeat rewrite call_execs_counts_eq; omega.
+        repeat rewrite call_execs_counts_eq; lia.
       * dest; exists x1; rewrite in_app_iff in H9.
         destruct H9; auto.
         clear - H9; induction x0; simpl in *;[contradiction|].
@@ -8277,7 +8278,7 @@ Proof.
         rewrite getNumExecs_app, getNumCalls_app.
         specialize (Step_NeverCall_getNumCalls_0 HNeverCall HStep1 (h, v)) as P0.
         specialize (NotInDef_ZeroExecs_Step (h, v) H HStep1) as P1.
-        clear - HHidden P0 P1; omega.
+        clear - HHidden P0 P1; lia.
     + constructor;[assumption |apply WeakInclusionRefl].
 Qed.
 
@@ -9525,7 +9526,8 @@ Proof.
   unfold inlineAll_Rules; intros.
   assert (length l <= length (l ++ l')) as P0.
   { rewrite app_length; lia. }
-  rewrite (seq_app' _ P0), app_length, minus_plus, plus_O_n, fold_left_app, inlineSome_Rules_app_r at 1; [setoid_rewrite inlineSome_Rules_app_l|].
+  rewrite (seq_app' _ P0), app_length, (Nat.add_comm (Datatypes.length l) (Datatypes.length l')),
+    Nat.add_sub, plus_O_n, fold_left_app, inlineSome_Rules_app_r at 1; [setoid_rewrite inlineSome_Rules_app_l|].
   - rewrite Reduce_seq, Nat.sub_diag; reflexivity.
   - intros; rewrite in_seq in *; lia.
   - intros; rewrite in_seq in *; dest; assumption.
