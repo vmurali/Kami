@@ -1169,7 +1169,7 @@ Proof.
     inversion X.
 Qed.
 
-Theorem sappendNotEmpty': forall s c s', sappend s (String c s') =? ""=false.
+Theorem sappendNotEmpty': forall s c s', (sappend s (String c s') =? ""=false)%string.
 Proof.
   intros.
   induction s.
@@ -1192,7 +1192,7 @@ Proof.
     reflexivity.
 Qed.
 
-(*Theorem sappend_eq: forall a s b, ((sappend a s) =? (sappend b s))= (a =? b).
+(*Theorem sappend_eq: forall a s b, ((sappend a s) =? (sappend b s))%string= (a =? b)%string.
 Proof.
   intro a.
   induction a.
@@ -1215,7 +1215,7 @@ Proof.
     +
   -*)
 
-Theorem sappend_empty_eq: forall a s, (sappend s a  =? a) = (s =? "").
+Theorem sappend_empty_eq: forall a s, (sappend s a  =? a)%string = (s =? "")%string.
 Proof.
   intro a.
   induction a.
@@ -1267,7 +1267,7 @@ Proof.
     reflexivity.
 Qed.
 
-Theorem sappend_eq_reduce: forall a s b, (sappend a s =? sappend b s)=(a =? b).
+Theorem sappend_eq_reduce: forall a s b, (sappend a s =? sappend b s)%string=(a =? b)%string.
 Proof.
   intro a.
   induction a.
@@ -1302,7 +1302,7 @@ Proof.
       * reflexivity.
 Qed.
 
-Theorem sappend_tail_diff: forall s1 a b s2, ((a =? b)%char = false) -> ((sappend s1 (String a "") =? sappend s2 (String b ""))=false).
+Theorem sappend_tail_diff: forall s1 a b s2, ((a =? b)%char = false) -> ((sappend s1 (String a "") =? sappend s2 (String b ""))=false)%string.
 Proof.
   intro s1.
   induction s1.
@@ -1344,7 +1344,7 @@ Proof.
     simpl.
     rewrite String.eqb_sym.
     rewrite sappend_empty_eq.
-    assert (forall a b c, (a =? sappend b c)=(sappend b c =? a)).
+    assert (forall a b c, (a =? sappend b c)%string=(sappend b c =? a)%string)%string.
     intros. rewrite String.eqb_sym. reflexivity.
     rewrite H.
     rewrite sappend_empty_eq.
@@ -1399,7 +1399,7 @@ Proof.
   intros.
   erewrite <- sappend_eq_reduce.
   instantiate (1 := "").
-  assert ((srev s1 =? srev s2) = (sappend (srev s1) "" =? sappend (srev s2) "")).
+  assert ((srev s1 =? srev s2) = (sappend (srev s1) "" =? sappend (srev s2) ""))%string.
       rewrite sappend_eq_reduce.
       reflexivity.
   rewrite H.

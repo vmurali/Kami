@@ -1,6 +1,5 @@
 Require Import Kami.Syntax Kami.Lib.EclecticLib Kami.Tactics.
 Require Import Kami.Lib.NatStr.
-Require Import RecordUpdate.RecordSet.
 Require Import Program.Wf.
 Require Import Wf_nat.
 Require Import BinNums.
@@ -440,14 +439,6 @@ Notation "'MOD_WF_new' { m1 'with' .. 'with' mN }" :=
 (*            ) nums *)
 (*   )) *)
 (*     (at level 13, name at level 9, nums at level 9) : kami_scope. *)
-
-
-
-(* Gallina Record Notations *)
-Notation "x <| proj  :=  v |>" := (set proj (constructor v) x)
-                                    (at level 12, left associativity).
-Notation "x <| proj  ::==  f |>" := (set proj f x)
-                                      (at level 12, f at next level, left associativity).
 
 
 Notation "'STRUCT_TYPE' { s1 ; .. ; sN }" :=

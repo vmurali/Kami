@@ -129,8 +129,8 @@ Proof.
       apply H.
     + simpl.
       remember (
-        existsb (let '(a0, _) := a in fun '(b, _) => a0 =? b)
-         (nubBy (fun '(a0, _) '(b, _) => a0 =? b) x)).
+        existsb (let '(a0, _) := a in fun '(b, _) => a0 =? b)%string
+         (nubBy (fun '(a0, _) '(b, _) => a0 =? b)%string x)).
       destruct b.
       - simpl.
         intros.
@@ -173,8 +173,8 @@ Proof.
       apply H.
     + simpl.
       remember (
-        existsb (let '(a0, _) := a in fun '(b, _) => a0 =? b)
-          (nubBy (fun '(a0, _) '(b, _) => a0 =? b) y)).
+        existsb (let '(a0, _) := a in fun '(b, _) => a0 =? b)%string
+          (nubBy (fun '(a0, _) '(b, _) => a0 =? b) y)%string).
       destruct b.
       - simpl.
         intros.
@@ -208,7 +208,7 @@ Proof.
 Qed.
 
 Theorem NoDup_NubBy_helper: forall T (a:(string * T)) (l:list (string *T)),
-    false = existsb (let '(a0, _) := a in fun '(b, _) => a0 =? b) l ->
+    false = existsb (let '(a0, _) := a in fun '(b, _) => a0 =? b)%string l ->
     ~ In (fst a) (map fst l).
 Proof.
     induction l.
@@ -224,7 +224,7 @@ Proof.
       destruct a.
       simpl in H0.
       subst.
-      remember (s0=?s0).
+      remember (s0=?s0)%string.
       destruct b.
       - simpl in H.
         inversion H.
@@ -234,7 +234,7 @@ Proof.
         destruct a0.
         simpl in H0.
         simpl in IHl.
-        remember (s =? s0).
+        remember (s =? s0)%string.
         destruct b.
         *  simpl in H.
            inversion H.
@@ -252,8 +252,8 @@ Proof.
     apply NoDup_nil.
   + simpl.
     remember (
-       existsb (let '(a0, _) := a in fun '(b, _) => a0 =? b)
-         (nubBy (fun '(a0, _) '(b, _) => a0 =? b) x)
+       existsb (let '(a0, _) := a in fun '(b, _) => a0 =? b)%string
+         (nubBy (fun '(a0, _) '(b, _) => a0 =? b)%string x)
     ).
     destruct b.
     - apply IHx.

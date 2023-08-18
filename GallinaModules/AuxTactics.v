@@ -692,6 +692,7 @@ Ltac doUpdRegs_red1 :=
     | rewrite (doUpdReg_notIn _ _ TMP); clear TMP ]; cbn[fst]
   end.
 
+Local Open Scope string_scope.
 Ltac doUpdRegs_red2 :=
   match goal with
     | |- context [oneUpdReg _ _ ] => cbv [oneUpdReg fst]
@@ -751,6 +752,7 @@ Ltac doUpdRegs_red3 :=
       |- context [?a =? ?b] =>
       apply not_eq_sym in H; rewrite (proj2 (String.eqb_neq a b) H)
      end.
+Local Close Scope string_scope.
 
 Ltac doUpdRegs_red := repeat (
                           match goal with

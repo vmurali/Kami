@@ -110,7 +110,7 @@ Lemma stripIrrelevantUpd: forall (name: string) (regs: RegsT) (upds: list RegT) 
     simpl in H.
   erewrite IHregs; intuition.
   induction upds; simpl; auto; f_equal;
-    case_eq (fst a =? name); auto;
+    case_eq (fst a =? name)%string; auto;
       intro;
       intuition;
       epose (String.eqb_eq (fst a) name);

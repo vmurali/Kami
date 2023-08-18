@@ -1,5 +1,5 @@
 Require Export List String Ascii BinInt BinNat.
-Require Export Kami.Syntax Kami.Compiler.CompilerSimple Kami.Compiler.Compiler Kami.Compiler.Rtl Kami.LibStruct Kami.Compiler.UnverifiedIncompleteCompiler.
+Require Export Kami.Syntax Kami.Compiler.CompilerSimple Kami.Compiler.Compiler Kami.Compiler.Rtl Kami.LibStruct.
 
 Require Import Kami.Notations.
 

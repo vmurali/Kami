@@ -12,8 +12,8 @@ Global Set Implicit Arguments.
 Global Set Asymmetric Patterns.
 
 Global Open Scope word_scope.
-Global Open Scope nat_scope.
 Global Open Scope string_scope.
+Global Open Scope nat_scope.
 Global Open Scope vector_scope.
 Global Open Scope list_scope.
 
@@ -875,7 +875,7 @@ Proof.
         destruct s0.
         destruct r0.
         ** rewrite lookup_cons.
-           destruct (r =? s) eqn:G.
+           destruct (r =? s)%string eqn:G.
            *** rewrite String.eqb_eq in G.
                rewrite <- G in H.
                inversion H.
@@ -884,7 +884,7 @@ Proof.
                exact H0.
            *** auto.
         ** rewrite lookup_cons.
-           destruct (r =? s) eqn:G.
+           destruct (r =? s)%string eqn:G.
            *** rewrite String.eqb_eq in G.
                rewrite <- G in H.
                inversion H.
@@ -901,7 +901,7 @@ Proof.
   - destruct a.
     destruct s0.
     rewrite lookup_cons in H.
-    + destruct (r =? s) eqn:G.
+    + destruct (r =? s)%string eqn:G.
       * rewrite String.eqb_eq in G.
         inversion H.
         left; simpl; congruence.

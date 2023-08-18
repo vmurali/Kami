@@ -683,7 +683,7 @@ Lemma PSemAction_inline_notIn (f : DefMethT) o k (a : ActionT type k)
   PSemAction o (inlineSingle a f) readRegs newRegs calls fret.
 Proof.
   induction 1; simpl; intros.
-  - destruct (fst f =? meth) eqn:G. rewrite <- (proj1 (String.eqb_eq _ _) G) in *.
+  - destruct (fst f =? meth)%string eqn:G. rewrite <- (proj1 (String.eqb_eq _ _) G) in *.
     + apply False_ind; apply H0; rewrite HAcalls; simpl; left; reflexivity.
     + econstructor 1; eauto.
       apply IHPSemAction; intro; apply H0; rewrite HAcalls; simpl; right; assumption.
@@ -979,7 +979,7 @@ Lemma PSemAction_inline_In (f : DefMethT) o:
       PSemAction o (inlineSingle a f) (readRegs' ++ readRegs) (newRegs' ++ newRegs) (calls'++calls2) retV2.
 Proof.
   induction a; intros.
-  - simpl; destruct (fst f =? meth) eqn:G; [rewrite String.eqb_eq in G|rewrite eqb_neq in G]; [destruct Signature_dec | ]; subst.
+  - simpl; destruct (fst f =? meth)%string eqn:G; [rewrite String.eqb_eq in G|rewrite eqb_neq in G]; [destruct Signature_dec | ]; subst.
     + inv H0; EqDep_subst.
       assert (In (fst f, existT SignT (projT1 (snd f)) (evalExpr e, mret)) calls1).
       { case (in_app_or _ _ _ (Permutation_in _ (Permutation_sym (HAcalls)) (in_eq _ _)));

@@ -368,7 +368,7 @@ Proof.
     destruct lookup eqn:G.
     + discriminate.
     + destruct (IHps qs Hoverlaps str).
-      * destruct (fst a =? str) eqn:G0.
+      * destruct (fst a =? str)%string eqn:G0.
         ** right.
            intro.
            destruct (In_lookup _ _ H0).

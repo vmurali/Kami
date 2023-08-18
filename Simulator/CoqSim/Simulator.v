@@ -254,15 +254,15 @@ Proof.
   - discriminate H.
   - simpl do_single_update in H.
     destruct a.
-    destruct (reg_name upd =? s).
+    destruct (reg_name upd =? s)%string.
     + rewrite lookup_cons in H.
       rewrite lookup_cons.
-      destruct (r =? s).
+      destruct (r =? s)%string.
       * destruct s0; repeat eexists; reflexivity.
       * repeat eexists; exact H.
     + rewrite lookup_cons in H.
       rewrite lookup_cons.
-      destruct (r =? s).
+      destruct (r =? s)%string.
       * destruct s0; repeat eexists; reflexivity.
       * eapply IHregs.
         exact H.
@@ -350,7 +350,7 @@ Proof.
   - simpl.
     destruct a.
     rewrite lookup_cons in *.
-    destruct (x =? s).
+    destruct (x =? s)%string.
     + inversion H; auto.
     + apply IHps; auto.
 Qed.
@@ -364,7 +364,7 @@ Proof.
   - destruct a.
     simpl in H.
     rewrite lookup_cons in *.
-    destruct (x =? s).
+    destruct (x =? s)%string.
     + exists v; inversion H; auto.
     + apply IHps; auto.
 Qed.

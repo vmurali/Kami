@@ -3,7 +3,7 @@ Require Export Kami.Lib.Word Kami.Lib.VectorFacts Kami.Lib.EclecticLib Kami.AllN
 
 Export Word.Notations.
 
-Require Import Permutation RecordUpdate.RecordSet.
+Require Import Permutation.
 Require Import ZArith.
 Import ListNotations.
 
