@@ -39,13 +39,13 @@ Proof.
     reflexivity.
 Qed.
 
-Hint Rewrite Registers_dist_append : kami_rewrite_db.
+#[export] Hint Rewrite Registers_dist_append : kami_rewrite_db.
 
 Lemma app_rewrite2: forall A (f:A) (r:list A), [f]++r=f::r.
   Proof. reflexivity. Qed.
 
-Hint Rewrite app_rewrite1 app_rewrite2 app_nil_l app_nil_r Registers1 Registers2 : kami_rewrite_db.
-Hint Rewrite Registers1 Registers2 : kami_rewrite_db.
+#[export] Hint Rewrite app_rewrite1 app_rewrite2 app_nil_l app_nil_r Registers1 Registers2 : kami_rewrite_db.
+#[export] Hint Rewrite Registers1 Registers2 : kami_rewrite_db.
 
 Lemma makeModule_rules_Registers: forall l, makeModule_rules (Registers l)=[].
 Proof.
@@ -88,7 +88,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite makeModule_rules_Registers makeModule_rules_append makeModule_rules_MERegister makeModule_rules_MERule makeModule_rules_nil : kami_rewrite_db.
+#[export] Hint Rewrite makeModule_rules_Registers makeModule_rules_append makeModule_rules_MERegister makeModule_rules_MERule makeModule_rules_nil : kami_rewrite_db.
  
 Lemma makeModule_meths_Registers: forall l, makeModule_meths (Registers l)=[].
 Proof.
@@ -131,7 +131,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite makeModule_meths_Registers makeModule_meths_append makeModule_meths_MERegister makeModule_meths_MERule makeModule_meths_nil : kami_rewrite_db.
+#[export] Hint Rewrite makeModule_meths_Registers makeModule_meths_append makeModule_meths_MERegister makeModule_meths_MERule makeModule_meths_nil : kami_rewrite_db.
 
  
 Lemma makeModule_regs_Registers: forall l, makeModule_regs (Registers l)=l.
@@ -176,7 +176,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite makeModule_regs_Registers makeModule_regs_append makeModule_regs_MERegister makeModule_regs_MERule makeModule_regs_nil : kami_rewrite_db.
+#[export] Hint Rewrite makeModule_regs_Registers makeModule_regs_append makeModule_regs_MERegister makeModule_regs_MERule makeModule_regs_nil : kami_rewrite_db.
 
 Lemma map1: forall T R (f: T -> R) (h:T) t, List.map f (h::t)=(f h)::(List.map f t).
 Proof.
@@ -377,8 +377,8 @@ Qed.
       reflexivity. 
 Qed.
  
-  Hint Rewrite map1 fold_right1 getAllRules_ConcatMod getAllMethods_ConcatMod getCallsPerMod_ConcatMod map_getCallsPerMod_map_BaseRegFile : kami_rewrite_db.
-  Hint Rewrite getCallsPerMod_fold_right_ConcatMod getCallsPerMod_BaseRegFile : kami_rewrite_db.
+  #[export] Hint Rewrite map1 fold_right1 getAllRules_ConcatMod getAllMethods_ConcatMod getCallsPerMod_ConcatMod map_getCallsPerMod_map_BaseRegFile : kami_rewrite_db.
+  #[export] Hint Rewrite getCallsPerMod_fold_right_ConcatMod getCallsPerMod_BaseRegFile : kami_rewrite_db.
 
   Theorem getAllRegisters_ConcatMod: forall a b, getAllRegisters (ConcatMod a b)=getAllRegisters(a)++getAllRegisters(b).
   Proof.
@@ -694,12 +694,12 @@ Qed.
         reflexivity.
   Qed.
 
-  Hint Rewrite getAllRegisters_fold_right_ConcatMod getAllMethods_fold_right_ConcatMod
+  #[export] Hint Rewrite getAllRegisters_fold_right_ConcatMod getAllMethods_fold_right_ConcatMod
        getAllRules_fold_right_ConcatMod
        concat_map_getAllRules_map_RegFileBase
        map_getAllMethods_map_RegFileBase map_getAllRegisters_map_RegFileBase : kami_rewrite_db.
-  Hint Rewrite getAllRegisters_ConcatMod DisjKey_Append1 DisjKey_Append2 DisjKey_In_map2 DisjKey_In_map1 : kami_rewrite_db.
-  Hint Rewrite DisjKey_In_map_fst2 DisjKey_In_map_fst1: kami_rewrite_db.
+  #[export] Hint Rewrite getAllRegisters_ConcatMod DisjKey_Append1 DisjKey_Append2 DisjKey_In_map2 DisjKey_In_map1 : kami_rewrite_db.
+  #[export] Hint Rewrite DisjKey_In_map_fst2 DisjKey_In_map_fst1: kami_rewrite_db.
 
   Theorem getAllRegisters_BaseMod: forall regs rules dms,
       getAllRegisters (BaseMod regs rules dms)=regs.
@@ -728,7 +728,7 @@ Qed.
         destruct eq.
   Admitted.*)
     
-  Hint Rewrite getAllRegisters_BaseMod append_equal_prefix : kami_rewrite_db.
+  #[export] Hint Rewrite getAllRegisters_BaseMod append_equal_prefix : kami_rewrite_db.
 
   Theorem getAllRegisters_makeModule_MERegister: forall a b, getAllRegisters (makeModule ((MERegister a)::b))=a::getAllRegisters (makeModule b).
 Proof.
@@ -756,7 +756,7 @@ Proof.
       reflexivity.
 Qed.
 
-Hint Rewrite getAllRegisters_makeModule_MERegister
+#[export] Hint Rewrite getAllRegisters_makeModule_MERegister
              getAllRegisters_makeModule_Registers
            getAllRegisters_makeModule_MERule : kami_rewrite_db.
 
@@ -800,7 +800,7 @@ Proof.
           apply IHa.
 Qed.
 
-Hint Rewrite in_app : kami_rewrite_db.
+#[export] Hint Rewrite in_app : kami_rewrite_db.
 
 Lemma getAllMethods_makeModule_append: forall a b, getAllMethods (makeModule (a++b))=getAllMethods (makeModule a)++getAllMethods (makeModule b).
 Proof.
@@ -817,7 +817,7 @@ Proof.
         reflexivity.
 Qed.
 
-Hint Rewrite getAllMethods_makeModule_append : kami_rewrite_db.
+#[export] Hint Rewrite getAllMethods_makeModule_append : kami_rewrite_db.
 
 Lemma getAllMethods_makeModule_MERegister: forall a b, getAllMethods (makeModule ((MERegister a)::b))=getAllMethods (makeModule b).
 Proof.
@@ -825,7 +825,7 @@ Proof.
     reflexivity.
 Qed.
 
-Hint Rewrite getAllMethods_makeModule_MERegister : kami_rewrite_db.
+#[export] Hint Rewrite getAllMethods_makeModule_MERegister : kami_rewrite_db.
 
 Lemma getAllMethods_makeModule_MERule: forall a b, getAllMethods (makeModule ((MERule a)::b))=getAllMethods (makeModule b).
 Proof.
@@ -833,7 +833,7 @@ Proof.
     reflexivity.
 Qed.
 
-Hint Rewrite getAllMethods_makeModule_MERule : kami_rewrite_db.
+#[export] Hint Rewrite getAllMethods_makeModule_MERule : kami_rewrite_db.
 
 Lemma getAllMethods_makeModule_Registers: forall a, getAllMethods (makeModule (Registers a))=[].
 Proof.
@@ -843,7 +843,7 @@ Proof.
       apply IHa.
 Qed.
 
-Hint Rewrite getAllMethods_makeModule_Registers : kami_rewrite_db.
+#[export] Hint Rewrite getAllMethods_makeModule_Registers : kami_rewrite_db.
 
 Lemma getAllRules_makeModule_append: forall a b, getAllRules (makeModule (a++b))=getAllRules (makeModule a)++getAllRules (makeModule b).
 Proof.
@@ -860,7 +860,7 @@ Proof.
       - apply IHa.
 Qed.
 
-Hint Rewrite getAllRules_makeModule_append : kami_rewrite_db.
+#[export] Hint Rewrite getAllRules_makeModule_append : kami_rewrite_db.
 
 Lemma getAllRules_makeModule_MERegister: forall a b, getAllRules (makeModule ((MERegister a)::b))=getAllRules (makeModule b).
 Proof.
@@ -868,7 +868,7 @@ Proof.
     reflexivity.
 Qed.
 
-Hint Rewrite getAllRules_makeModule_MERegister : kami_rewrite_db.
+#[export] Hint Rewrite getAllRules_makeModule_MERegister : kami_rewrite_db.
 
 Lemma getAllRules_makeModule_MERule: forall a b, getAllRules (makeModule ((MERule a)::b))=a::(getAllRules (makeModule b)).
 Proof.
@@ -876,7 +876,7 @@ Proof.
     reflexivity.
 Qed.
 
-Hint Rewrite getAllRules_makeModule_MERule : kami_rewrite_db.
+#[export] Hint Rewrite getAllRules_makeModule_MERule : kami_rewrite_db.
 
 Lemma getAllRules_makeModule_Registers: forall a, getAllRules (makeModule (Registers a))=[].
 Proof.
@@ -886,9 +886,9 @@ Proof.
       apply IHa.
 Qed.
 
-Hint Rewrite getAllRules_makeModule_Registers : kami_rewrite_db.
+#[export] Hint Rewrite getAllRules_makeModule_Registers : kami_rewrite_db.
 
-Hint Rewrite map_app : kami_rewrite_db.
+#[export] Hint Rewrite map_app : kami_rewrite_db.
 
 Lemma getAllMethods_createHideMod: forall m h, getAllMethods (createHideMod m h)=getAllMethods m.
 Proof.
@@ -899,5 +899,5 @@ Proof.
     apply IHh.
 Qed.
 
-Hint Rewrite getAllMethods_createHideMod : kami_rewrite_db.
+#[export] Hint Rewrite getAllMethods_createHideMod : kami_rewrite_db.
 

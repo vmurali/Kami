@@ -1,4 +1,4 @@
-Require Import Recdef List Omega Div2.
+Require Import Recdef List Psatz Div2.
 
 Import ListNotations.
 
@@ -44,7 +44,7 @@ Section UnApp.
         symmetry in UA'.
         apply IHn in UA'.
         simpl.
-        omega. 
+        lia. 
   Qed.        
   
   Lemma unapp_app: 
@@ -89,14 +89,14 @@ Section UnApp.
         simpl. auto with arith.
       + simpl in UA.
         simpl in NltM. 
-        apply lt_S_n in NltM.
+        apply Arith_prebase.lt_S_n in NltM.
         name_term ua' (unapp n xs) UA'.  rewrite <- UA' in UA.
         destruct ua' as [m1' m2'].
         injection UA; intros M1 M2; subst m1 m2; clear UA.
         symmetry in UA'.
         apply IHxs in UA'; auto.
         simpl.
-        omega. 
+        lia. 
   Qed. 
 
 
@@ -116,7 +116,7 @@ Section UnApp.
       apply unapp_app in UA.
       subst m.
       rewrite app_length in *.
-      omega. 
+      lia. 
     }
     destruct n as [| n']; destruct m as [| x xs].
     - inversion Ngt0.
@@ -132,7 +132,7 @@ Section UnApp.
 
   Definition unapp_half(m: list A) :=
     let n := length m in 
-    let n2 := div2 n in
+    let n2 := Nat.div2 n in
     let n1 := n - n2 in
     unapp n1 m.
 
@@ -149,7 +149,7 @@ Section UnApp.
   Qed.
 
   Lemma div2_SS: 
-    forall n, div2 (S (S n)) > 0.
+    forall n, Nat.div2 (S (S n)) > 0.
   Proof. 
     induction n; simpl; auto with arith.
   Qed. 
@@ -166,11 +166,11 @@ Section UnApp.
     unfold unapp_half in SP.
     name_term k (length m) LEN. 
     rewrite <- LEN in *.
-    name_term n (k - div2 k) N1. 
+    name_term n (k - Nat.div2 k) N1. 
     rewrite <- N1 in SP.     
-    assert (DK: div2 k < k) 
-      by (apply lt_div2; auto with arith).
-    name_term d (div2 k) D. 
+    assert (DK: Nat.div2 k < k) 
+      by (apply PeanoNat.Nat.lt_div2; auto with arith).
+    name_term d (Nat.div2 k) D. 
     rewrite <- D in *.
     destruct m as [| x1 xs]. 
     simpl in LEN. subst k. inversion DK.
@@ -178,12 +178,12 @@ Section UnApp.
     simpl in LEN. subst k. inversion MgtO. inversion H0.
     assert (DgtO: d > 0) by (subst k d; apply div2_SS). 
     assert (NltM: n < length (x1::x2::xs))
-      by (simpl in *; omega). 
+      by (simpl in *; lia). 
     subst k.
     split. 
     - apply unapp_reduce_m1 with (n:=n) (m2:=m2); auto.
-    - assert (n > 0) by omega. 
-      assert (length (x1::x2::xs) > 0) by (simpl; omega).
+    - assert (n > 0) by lia. 
+      assert (length (x1::x2::xs) > 0) by (simpl; lia).
       apply unapp_reduce_m2 with (n:=n) (m1:=m1); auto.
   Qed. 
 
@@ -267,9 +267,9 @@ Section Folds.
                 name_term len_x_n_l0 (length (x::y::a::l1)) LEN;
                 rewrite <- LEN in *;
                 simpl in LEN;
-                assert (L0: len_x_n_l0 > 0) by omega;
-                apply lt_div2 in L0;
-                assert (len_x_n_l0 - div2 len_x_n_l0 > 0) by omega;
+                assert (L0: len_x_n_l0 > 0) by lia;
+                apply PeanoNat.Nat.lt_div2 in L0;
+                assert (len_x_n_l0 - Nat.div2 len_x_n_l0 > 0) by lia;
                 symmetry in teq2;
                 apply unapp_reduce_m2 in teq2; auto;
                 simpl in teq2;
@@ -285,12 +285,12 @@ Section Folds.
                  name_term len_x_n_l0 (length (x::y::a::l1)) LEN;
                  rewrite <- LEN in *;
                  simpl in LEN;
-                 assert (L0: len_x_n_l0 > 0) by omega;
-                 apply lt_div2 in L0;
-                 assert (L1: len_x_n_l0 > 1) by omega;
+                 assert (L0: len_x_n_l0 > 0) by lia;
+                 apply PeanoNat.Nat.lt_div2 in L0;
+                 assert (L1: len_x_n_l0 > 1) by lia;
                  rewrite LEN at 2;
                  simpl;
-                 omega]).
+                 lia]).
   Defined.
 
   Lemma f_comm1 a b c:
@@ -318,7 +318,7 @@ Section Folds.
         by (exists (length m1); auto).
     revert i m1 K.
     induction k as [| k]; intros * K *.
-    - assert (A1: length m1 = 0) by omega. 
+    - assert (A1: length m1 = 0) by lia. 
       apply length_zero_iff_nil in A1.
       subst m1. 
       reflexivity.
@@ -376,7 +376,7 @@ Section Folds.
       as [k K] by (exists (length m); auto). 
     revert m K.
     induction k as [| k]; intros * K.
-    - assert (A1: length m = 0) by omega. 
+    - assert (A1: length m = 0) by lia. 
       apply length_zero_iff_nil in A1.
       now subst m.
     - destruct m as [| x1 xs]. now simpl.
@@ -392,13 +392,13 @@ Section Folds.
         as [A1 A2]. {
         symmetry in Tpl.
         apply unapp_half_nonnil_reduces in Tpl; auto.
-        2: simpl; omega. 
+        2: simpl; lia. 
         simpl in *.
-        omega. 
+        lia. 
       }
       simpl in A1, A2.
-      assert (A3: length m1 <= k) by omega; clear A1.
-      assert (A4: length m2 <= k) by omega; clear A2. 
+      assert (A3: length m1 <= k) by lia; clear A1.
+      assert (A4: length m2 <= k) by lia; clear A2. 
       rewrite <- (IHk m1 A3); rewrite <- (IHk m2 A4).
       rewrite fold_right_homomorphism_unapp with (m:=(x1::x2::xs)) (m1 := m1) (m2 := m2); destruct xs; auto.
       unfold unapp_half in Tpl; simpl in *.
@@ -514,7 +514,7 @@ Section FoldWhich.
       forall i, i < length ls -> which (fold_right pick unit ls) (nth i ls unit) = true.
   Proof.
     induction ls; simpl; auto; intros.
-    - Omega.omega.
+    - lia.
     - unfold pick in *.
       remember (fold_right (fun x y => if which x y then x else y) unit ls) as sth.
       destruct i; simpl in *.
@@ -528,11 +528,11 @@ Section FoldWhich.
              rewrite Bool.negb_true_iff.
              auto.
       + case_eq (which a sth); intros sth2.
-        * specialize (IHls i ltac:(Omega.omega)).
+        * specialize (IHls i ltac:(lia)).
           rewrite <- IHls in sth2.
           pose proof (@whichTrans _ _ _ sth2).
           congruence.
-        * specialize (IHls i ltac:(Omega.omega)).
+        * specialize (IHls i ltac:(lia)).
           auto.
   Qed.
 
@@ -570,15 +570,15 @@ Section FoldWhich.
       + rewrite e in *.
         rewrite pickComm in *.
         rewrite pickUnit in *; subst.
-        exists 0; repeat split; auto; try Omega.omega; intros.
+        exists 0; repeat split; auto; try lia; intros.
       + specialize (IHls n).
         destruct IHls as [j [jLen cond1]].
         subst.
         rewrite <- cond1 in *.
         unfold pick in *.
         case_eq (which a (nth j ls unit)); intros sth; rewrite sth in *; subst.
-        * exists 0; repeat split; auto; try Omega.omega; intros.
-        * exists (S j); repeat split; auto; try Omega.omega; intros.
+        * exists 0; repeat split; auto; try lia; intros.
+        * exists (S j); repeat split; auto; try lia; intros.
   Qed.
 
   Theorem which2_fold_tree:
@@ -623,10 +623,10 @@ Section FoldWhich.
       + rewrite e in *.
         rewrite pickComm in *.
         rewrite pickUnit in *; subst.
-        exists 0; repeat split; auto; try Omega.omega; intros.
+        exists 0; repeat split; auto; try lia; intros.
         destruct i; auto.
         pose proof (fold_right_unit _ e) as sth.
-        specialize (sth (nth i ls unit) (nth_In (n := i) ls unit ltac:(Omega.omega))).
+        specialize (sth (nth i ls unit) (nth_In (n := i) ls unit ltac:(lia))).
         rewrite sth.
         specialize (whichSym a unit).
         destruct whichSym as [whichSym0 | whichSym0]; auto.
@@ -639,14 +639,14 @@ Section FoldWhich.
         rewrite <- cond1 in *.
         unfold pick in *.
         case_eq (which a (nth j ls unit)); intros sth; rewrite sth in *; subst.
-        * exists 0; repeat split; auto; try Omega.omega; intros.
+        * exists 0; repeat split; auto; try lia; intros.
           destruct i; auto.
-          destruct (Nat.eq_dec i j); subst; [auto|].
-          specialize (cond2 i ltac:(Omega.omega) n0).
+          destruct (PeanoNat.Nat.eq_dec i j); subst; [auto|].
+          specialize (cond2 i ltac:(lia) n0).
           rewrite <- cond2 in sth.
           pose proof (whichTrans sth).
           congruence.
-        * exists (S j); repeat split; auto; try Omega.omega; intros.
+        * exists (S j); repeat split; auto; try lia; intros.
           destruct i; auto.
           -- specialize (whichSym (nth j ls unit) a).
              destruct whichSym as [whichSym0 | whichSym0]; auto.
@@ -654,7 +654,7 @@ Section FoldWhich.
                 eapply whichRefl; eauto.
              ++ rewrite whichSym0.
                 rewrite Bool.negb_true_iff; auto.
-          -- eapply cond2; eauto; Omega.omega.
+          -- eapply cond2; eauto; lia.
   Qed.
 
   Theorem whichNonUnit_fold_left:

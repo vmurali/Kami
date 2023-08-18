@@ -34,7 +34,7 @@ Proof.
   - rewrite <- H. reflexivity.
 Qed.
 
-Hint Rewrite KRSimplifySound_RegInitT : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_RegInitT : KRSimplify.
 
 Theorem KRSimplifySound_Rule: forall e,
     KRExprDenote_Rule (KRSimplify_Rule e) = KRExprDenote_Rule e.
@@ -45,7 +45,7 @@ Proof.
   - rewrite <- H. reflexivity.
 Qed.
 
-Hint Rewrite KRSimplifySound_Rule : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_Rule : KRSimplify.
 
 Theorem KRSimplifySound_DefMethT: forall e,
     KRExprDenote_DefMethT (KRSimplify_DefMethT e) = KRExprDenote_DefMethT e.
@@ -56,7 +56,7 @@ Proof.
   - rewrite <- H. reflexivity.
 Qed.
 
-Hint Rewrite KRSimplifySound_DefMethT : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_DefMethT : KRSimplify.
 
 Theorem KRSimplifySound_string: forall e,
     KRExprDenote_string (KRSimplify_string e) = KRExprDenote_string e.
@@ -69,7 +69,7 @@ Proof.
   - rewrite <- H; reflexivity.
 Qed.
 
-Hint Rewrite KRSimplifySound_string : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_string : KRSimplify.
 
 (************************************************************************************************************)
 
@@ -89,7 +89,7 @@ Proof.
     reflexivity.
 Qed.
 
-Hint Rewrite KRSimplifySound_ModuleElt : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_ModuleElt : KRSimplify.
 
 (************************************************************************************************************)
 
@@ -100,7 +100,7 @@ Proof.
   destruct e. reflexivity.
 Qed.
 
-Hint Rewrite KRSimplifySound_CallWithSign : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_CallWithSign : KRSimplify.
 
 (************************************************************************************************************)
 
@@ -148,7 +148,7 @@ Proof.
     reflexivity.
 Qed.
 
-Hint Rewrite KRSimplifySound_list_CallWithSign : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_CallWithSign : KRSimplify.
 
 Theorem KRSimplifySound_list_list_CallWithSign: forall e,
     KRExprDenote_list_list_CallWithSign (KRSimplify_list_list_CallWithSign e) = KRExprDenote_list_list_CallWithSign e.
@@ -166,7 +166,7 @@ Proof.
     reflexivity.
 Qed.
 
-Hint Rewrite KRSimplifySound_list_list_CallWithSign : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_list_CallWithSign : KRSimplify.
 
 (************************************************************************************************************)
 
@@ -207,7 +207,7 @@ Proof.
       reflexivity.
 Qed.
 
-Hint Rewrite KRSimplifySound_list_RegFileBase : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_RegFileBase : KRSimplify.
 
 (************************************************************************************************************)
 
@@ -256,7 +256,7 @@ Proof.
   - repeat KRSimplifySound_crunch; try (rewrite <- H); try (rewrite <- H0); repeat KRSimplifySound_unit.
 Qed.
 
-Hint Rewrite KRSimplifySound_list_RegInitT : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_RegInitT : KRSimplify.
 
 Theorem KRSimplifySound_list_list_RegInitT: forall e,
    KRExprDenote_list_list_RegInitT (KRSimplify_list_list_RegInitT e) = KRExprDenote_list_list_RegInitT e.
@@ -290,7 +290,7 @@ Proof.
   - repeat KRSimplifySound_crunch; try (rewrite <- H); try (rewrite <- H0); repeat KRSimplifySound_unit.
 Qed.
 
-Hint Rewrite KRSimplifySound_list_list_RegInitT : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_list_RegInitT : KRSimplify.
 
 Theorem KRSimplifySound_list_Rule: forall e,
   KRExprDenote_list_Rule (KRSimplify_list_Rule e) = KRExprDenote_list_Rule e.
@@ -304,7 +304,7 @@ Proof.
   - repeat KRSimplifySound_crunch; try (rewrite <- H); try (rewrite <- H0); repeat KRSimplifySound_unit.
 Qed.
 
-Hint Rewrite KRSimplifySound_list_Rule : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_Rule : KRSimplify.
 
 Theorem KRSimplifySound_list_list_Rule: forall e,
    KRExprDenote_list_list_Rule (KRSimplify_list_list_Rule e) = KRExprDenote_list_list_Rule e.
@@ -326,7 +326,7 @@ Proof.
   - repeat KRSimplifySound_crunch; try (rewrite <- H); try (rewrite <- H0); repeat KRSimplifySound_unit.
 Qed.
 
-Hint Rewrite KRSimplifySound_list_list_Rule : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_list_Rule : KRSimplify.
 
 Theorem KRSimplifySound_list_list_DefMethT: forall e,
     KRExprDenote_list_list_DefMethT (KRSimplify_list_list_DefMethT e) = KRExprDenote_list_list_DefMethT e.
@@ -348,7 +348,7 @@ Proof.
       inversion HeqH; subst; clear HeqH.    
 Qed.
 
-Hint Rewrite KRSimplifySound_list_list_DefMethT : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_list_DefMethT : KRSimplify.
 
 Theorem KRSimplifySound_list_DefMethT: forall e,
   KRExprDenote_list_DefMethT (KRSimplify_list_DefMethT e) = KRExprDenote_list_DefMethT e.
@@ -359,7 +359,7 @@ Proof.
   - repeat KRSimplifySound_unit; repeat KRSimplifySound_crunch; try (rewrite <- H0); try (rewrite <- H); try (autorewrite with kami_rewrite_db); try (reflexivity).
 Qed.
 
-Hint Rewrite KRSimplifySound_list_DefMethT : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_DefMethT : KRSimplify.
 
 Theorem KRSimplifySound_list_ModuleElt: forall e,
    KRExprDenote_list_ModuleElt (KRSimplify_list_ModuleElt e) = KRExprDenote_list_ModuleElt e.
@@ -369,7 +369,7 @@ Proof.
   - repeat KRSimplifySound_unit; repeat KRSimplifySound_crunch; try (rewrite <- H0); try (rewrite <- H); try (autorewrite with kami_rewrite_db); try (reflexivity).
 Qed.
 
-Hint Rewrite KRSimplifySound_list_ModuleElt : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_ModuleElt : KRSimplify.
 
 Theorem KRSimplifySound_list_list_ModuleElt: forall e,
     KRExprDenote_list_list_ModuleElt (KRSimplify_list_list_ModuleElt e) = KRExprDenote_list_list_ModuleElt e.
@@ -378,7 +378,7 @@ Proof.
   - repeat KRSimplifySound_crunch; try (rewrite <- H); try (rewrite <- H0); repeat KRSimplifySound_unit.
 Qed.
 
-Hint Rewrite KRSimplifySound_list_list_ModuleElt : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_list_ModuleElt : KRSimplify.
 
 Theorem KRSimplifySound_BaseModule: forall e,
   KRExprDenote_BaseModule (KRSimplify_BaseModule e) = KRExprDenote_BaseModule e.
@@ -387,7 +387,7 @@ Proof.
   repeat KRSimplifySound_crunch; try (rewrite <- H0); try (rewrite <- H); try (autorewrite with kami_rewrite_db); try (reflexivity).
 Qed.
 
-Hint Rewrite KRSimplifySound_BaseModule : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_BaseModule : KRSimplify.
 
 Theorem KRSimplifySound_Mod: forall e,
     KRExprDenote_Mod (KRSimplify_Mod e) = KRExprDenote_Mod e.
@@ -397,7 +397,7 @@ Proof.
   repeat KRSimplifySound_crunch; try (rewrite <- H0); try (rewrite <- H); try (autorewrite with kami_rewrite_db); try (reflexivity).
 Qed.
 
-Hint Rewrite KRSimplifySound_Mod : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_Mod : KRSimplify.
 
 Theorem KRSimplifySound_list_Mod: forall e,
     KRExprDenote_list_Mod (KRSimplify_list_Mod e) = KRExprDenote_list_Mod e.
@@ -407,7 +407,7 @@ Proof.
   repeat KRSimplifySound_crunch; try (rewrite <- H0); try (rewrite <- H); try (autorewrite with kami_rewrite_db); try (reflexivity).
 Qed.
 
-Hint Rewrite KRSimplifySound_list_Mod : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_Mod : KRSimplify.
 
 Theorem KRSimplifySound_RegFileBase: forall e,
      KRExprDenote_RegFileBase (KRSimplify_RegFileBase e) = KRExprDenote_RegFileBase e.
@@ -416,4 +416,4 @@ Proof.
   destruct e. reflexivity.
 Qed.
 
-Hint Rewrite KRSimplifySound_RegFileBase : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_RegFileBase : KRSimplify.

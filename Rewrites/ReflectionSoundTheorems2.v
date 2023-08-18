@@ -30,7 +30,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_list_string_KRApp_list_string : KRSimplify.
+#[export] Hint Rewrite KRSimplify_list_string_KRApp_list_string : KRSimplify.
 
 Theorem KRSimplify_list_string_KRgetCallsPerMod:
   forall m, KRSimplify_list_string(KRgetCallsPerMod m)=
@@ -39,7 +39,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_list_string_KRgetCallsPerMod : KRSimplify.
+#[export] Hint Rewrite KRSimplify_list_string_KRgetCallsPerMod : KRSimplify.
 
 Theorem KRSimplify_list_string_KRmap_RegInitT_string:
   forall f l, KRSimplify_list_string (KRmap_RegInitT_string f l)=
@@ -48,7 +48,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_list_string_KRmap_RegInitT_string : KRSimplify.
+#[export] Hint Rewrite KRSimplify_list_string_KRmap_RegInitT_string : KRSimplify.
 
 Theorem KRSimplify_list_string_KRmap_Rule_string:
   forall f l, KRSimplify_list_string (KRmap_Rule_string f l)=
@@ -57,7 +57,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_list_string_KRmap_Rule_string : KRSimplify.
+#[export] Hint Rewrite KRSimplify_list_string_KRmap_Rule_string : KRSimplify.
 
 Theorem KRSimplify_list_string_KRmap_DefMethT_string:
   forall f l, KRSimplify_list_string (KRmap_DefMethT_string f l)=
@@ -66,7 +66,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_list_string_KRmap_DefMethT_string : KRSimplify.
+#[export] Hint Rewrite KRSimplify_list_string_KRmap_DefMethT_string : KRSimplify.
 
 Theorem KRSimplify_list_list_string_KRCons_list_list_string:
   forall f r, KRSimplify_list_list_string (KRCons_list_list_string f r)=
@@ -75,7 +75,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_list_list_string_KRCons_list_list_string : KRSimplify.
+#[export] Hint Rewrite KRSimplify_list_list_string_KRCons_list_list_string : KRSimplify.
 
 Theorem KRSimplify_list_list_string_KRApp_list_list_string:
   forall f r, KRSimplify_list_list_string (KRApp_list_list_string f r)=
@@ -84,7 +84,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Rewrite KRSimplify_list_list_string_KRApp_list_list_string : KRSimplify.
+#[export] Hint Rewrite KRSimplify_list_list_string_KRApp_list_list_string : KRSimplify.
 
 Theorem KRSimplifySound_list_string: forall e,
     KRExprDenote_list_string (KRSimplify_list_string e) = KRExprDenote_list_string e.
@@ -95,7 +95,7 @@ Proof.
           ); try (intros; autorewrite with KRSimplify;simpl;try(f_equal);autorewrite with KRSimplify;try (apply H);try (apply H0);reflexivity).
 Qed.
 
-Hint Rewrite KRSimplifySound_list_string : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_string : KRSimplify.
 
 Theorem KRSimplifySound_list_list_string: forall e,
    KRExprDenote_list_list_string (KRSimplify_list_list_string e) = KRExprDenote_list_list_string e.
@@ -106,5 +106,5 @@ Proof.
           ); try (intros; autorewrite with KRSimplify;simpl;try(f_equal);autorewrite with KRSimplify;try (apply H);try (apply H0);reflexivity).
 Qed.
 
-Hint Rewrite KRSimplifySound_list_list_string : KRSimplify.
+#[export] Hint Rewrite KRSimplifySound_list_list_string : KRSimplify.
 

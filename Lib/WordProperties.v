@@ -2,7 +2,6 @@ Require Import Coq.ZArith.BinIntDef Coq.ZArith.BinInt Coq.ZArith.Zdiv Eqdep.
 Require Import Kami.Lib.Word.
 Require Import Kami.Lib.EclecticLib.
 Require Import Lia.
-Require Import Omega.
 Require Import Coq.Arith.Even.
 Require Import Coq.Arith.Div2.
 Require Import Coq.NArith.NArith.
@@ -50,7 +49,7 @@ Ltac discharge_pow_nonzero :=
   (apply Z.pow_nonzero;
    unfold not; intros; discriminate).
 
-Hint Rewrite
+#[export] Hint Rewrite
      Z.lor_spec
      Z.lxor_spec
      Z.testbit_0_l
@@ -200,9 +199,8 @@ Proof.
   assert (Z.of_nat n = Z.of_nat x + Z.of_nat (n - x))%Z.
   { rewrite <- Nat2Z.inj_add.
     apply inj_eq.
-    apply le_plus_minus.
-    apply Z.gt_lt in P1.
-    lia. }
+    lia.
+  }
   specialize (Z.pow_nonneg 2 (Z.of_nat (n - x))); intros.
   assert (0 <= 2)%Z.
   {
@@ -356,7 +354,8 @@ Proof.
   rewrite Nat2Z.inj_add.
   rewrite H6.
   rewrite Z.add_comm.
-  rewrite minus_plus.
+  rewrite Nat.add_comm.
+  rewrite Nat.add_sub.
   rewrite Z_div_plus.
   rewrite <- wordBound. 
   rewrite Zmod_div.
@@ -396,7 +395,8 @@ Theorem concat_split : forall sz1 sz2 (w : word (sz1 + sz2)),
 Proof.
   intros. 
   arithmetizeWord.
-  erewrite minus_plus, Z.add_comm, Z.mul_comm, <- Z.rem_mul_r.
+  rewrite Nat.add_comm.
+  erewrite Nat.add_sub, Z.add_comm, Z.mul_comm, <- Z.rem_mul_r.
   - erewrite <- Z.pow_add_r, <- Nat2Z.inj_add,  Nat.add_comm; try apply Nat2Z.is_nonneg.
     repeat rewrite wordBound; auto.
   - intro.
@@ -404,15 +404,15 @@ Proof.
   - specialize (Z_of_nat_pow_2_gt_0 sz1) as P0; lia.
 Qed.
 
-
 Import Word.Notations.
 
 Open Scope word_scope.
 
-Hint Rewrite Zplus_mod_idemp_r Z_mod_plus_full Zplus_mod_idemp_l: distributeMod.
-Hint Rewrite Zminus_mod_idemp_r Zminus_mod_idemp_l: distributeMod.
-Hint Rewrite Z_mod_mult Zmult_mod_idemp_r Zmult_mod_idemp_l Zmult_mod_distr_l Zmult_mod_distr_r: distributeMod.
-Hint Rewrite <- Zplus_mod Zminus_mod Zmult_mod: distributeMod.
+#[export] Hint Rewrite Zplus_mod_idemp_r Z_mod_plus_full Zplus_mod_idemp_l: distributeMod.
+#[export] Hint Rewrite Zminus_mod_idemp_r Zminus_mod_idemp_l: distributeMod.
+#[export] Hint Rewrite Z_mod_mult Zmult_mod_idemp_r
+  Zmult_mod_idemp_l Zmult_mod_distr_l Zmult_mod_distr_r: distributeMod.
+#[export] Hint Rewrite <- Zplus_mod Zminus_mod Zmult_mod: distributeMod.
 
 Lemma wminus_plus_distr:
   forall {sz} (x y z: word sz), x ^- (y ^+ z) = x ^- y ^- z.
@@ -723,16 +723,14 @@ Proof.
   rewrite Zmod_mod.
   specialize Z.mod_small with (wordVal / 2 ^ Z.of_nat sz2)%Z (2 ^ Z.of_nat sz1)%Z as Hs.
   rewrite Hs.
-  specialize Z_div_mod_eq with wordVal (2 ^ Z.of_nat sz2)%Z as Hmod.
-  rewrite Z.mul_comm in Hmod.
-  rewrite <- Hmod.
-  rewrite Z.mod_small; try lia.
-  auto.
-  split; try apply Z.div_pos; intuition.
-  apply Z.div_lt_upper_bound; intuition.
-  rewrite <- Z.pow_add_r; try lia.
-  rewrite <- Nat2Z.inj_add. rewrite Nat.add_comm.
-  lia.
+  - rewrite Z.mul_comm.
+    rewrite <- Z_div_mod_eq_full.
+    auto.
+  - split; try apply Z.div_pos; intuition.
+    apply Z.div_lt_upper_bound; intuition.
+    rewrite <- Z.pow_add_r; try lia.
+    rewrite <- Nat2Z.inj_add. rewrite Nat.add_comm.
+    lia.
 Qed.
 
 (* Moved from FpuProperties.v *)
@@ -746,16 +744,12 @@ Proof.
   rewrite Nat.add_sub, Z.mod_small.
   - rewrite Zdiv_div; try lia.
     + rewrite pow2_of_nat, Nat2Z.id; reflexivity.
-    + apply (Z.gt_lt _ _ (Z_pow_2_gt_0 (Z.le_ge _ _ (Nat2Z.is_nonneg _)))).
   - split.
     + apply Z.div_pos; try lia.
-      apply (Z.gt_lt _ _ (Z_pow_2_gt_0 (Z.le_ge _ _ (Nat2Z.is_nonneg _)))).
     + rewrite (Zdiv_unique (2 ^ Z.of_nat (sz1 + sz2)) (2 ^ Z.of_nat (sz1)) (2 ^ Z.of_nat (sz2)) 0%Z).
       * apply Z_lt_div2; try lia.
-        -- apply (Z_pow_2_gt_0 (Z.le_ge _ _ (Nat2Z.is_nonneg _))).
-        -- apply Znumtheory.Zdivide_mod, pow_divide.
+        apply Znumtheory.Zdivide_mod, pow_divide.
       * split; try lia.
-        apply (Z.gt_lt _ _ (Z_pow_2_gt_0 (Z.le_ge _ _ (Nat2Z.is_nonneg _)))).
       * rewrite Nat2Z.inj_add, Z.pow_add_r; lia.
 Qed.
 
@@ -818,7 +812,6 @@ Proof.
     repeat rewrite (Zmod_small);[ |split |split ]; try lia.
     + rewrite <- Zpow_of_nat.
       apply inj_lt; assumption.
-    + apply (Z.gt_lt _ _ (Z_pow_2_gt_0 (Z.le_ge _ _ (Nat2Z.is_nonneg _)))).
 Qed.
 
 Lemma wneg_wplus_distr : forall sz (w1 w2 : word sz), ^~ (w1 ^+ w2) = ^~ w1 ^+ ^~ w2.
@@ -850,7 +843,6 @@ Proof.
   simpl.
   rewrite Zmod_mod'; try lia.
   - rewrite <- Zpow_of_nat, Nat2Z.id; reflexivity.
-  - apply (Z.gt_lt _ _ (Z_pow_2_gt_0 (Z.le_ge _ _ (Nat2Z.is_nonneg _)))).
 Qed.
 
 Lemma wordToNat_wplus :
@@ -950,7 +942,6 @@ Proof.
       repeat rewrite (Zmod_small);[ |split |split ]; try lia.
       * rewrite <- Zpow_of_nat.
         apply inj_lt; assumption.
-      * apply (Z.gt_lt _ _ (Z_pow_2_gt_0 (Z.le_ge _ _ (Nat2Z.is_nonneg _)))).
 Qed.
 
 Lemma combine_shiftl_plus_n  n x :
@@ -1006,8 +997,8 @@ Proof.
   destruct H0.
   rewrite Z2Nat.inj_lt, <- Zpow_of_nat, Nat2Z.id in H1; try lia.
   rewrite Nat.div_str_pos_iff in H;[|specialize (pow2_zero (sz + 1 - 1))]; try lia.
-  rewrite Nat.add_comm, minus_plus in H.
-  rewrite Nat.add_comm, minus_plus, Z.mod_small; try rewrite Z.pow_pos_fold; try lia.
+  rewrite Nat.add_sub in H.
+  rewrite Nat.add_sub, Z.mod_small; try rewrite Z.pow_pos_fold; try lia.
   rewrite Z.mod_small.
   - apply (Zdiv_unique _ _ _ (wordVal - 2 ^ Z.of_nat sz)); try split; rewrite pow2_of_nat, <- (Z2Nat.id wordVal); try lia.
     rewrite <- Nat2Z.inj_sub, <- Nat2Z.inj_lt; try lia.
@@ -1024,14 +1015,12 @@ Proof.
         rewrite <- (Z2Nat.id 1); try lia.
         rewrite <- (Z2Nat.id wordVal); try lia.
         rewrite <- (Z2Nat.id 0); try lia.
-        rewrite <- Nat2Z.inj_add, pow2_of_nat, <- div_Zdiv.
+        rewrite <- Nat2Z.inj_add, pow2_of_nat, <- Nat2Z.inj_div.
         + rewrite Nat2Z.inj_iff.
           replace (Z.to_nat 1) with 1; auto.
           replace (Z.to_nat 0) with 0; auto.
           rewrite Nat.div_small_iff; auto.
           specialize (pow2_zero (sz + 1)) as TMP; lia.
-        + specialize (pow2_zero (sz + (Z.to_nat 1))) as TMP; lia.
-      - apply Z.pow_nonneg; lia.
     }
     destruct (Z.div_small_iff (wordVal / 2 ^ Z.of_nat sz) _ P0) as [P2 P3]; clear P3.
     destruct (P2 P1); auto.
@@ -1065,8 +1054,8 @@ Proof.
     + unfold wordToNat, natToWord; simpl.
       rewrite Z.pow_pos_fold, Zpos_P_of_succ_nat, <- Nat2Z.inj_succ, <- (Nat.add_1_l sz), Nat2Z.inj_add, Z.pow_add_r; try lia.
       destruct H.
-      rewrite <- minus_n_O, Z.mod_small.
-      * rewrite Nat2Z.id; assumption.
+      rewrite Nat.sub_0_r, Z.mod_small.
+      * rewrite Nat2Z.id; auto.
       * split; [apply Nat2Z.is_nonneg|].
         repeat rewrite <- Zpow_of_nat.
         rewrite <- Nat2Z.inj_mul.
@@ -1104,14 +1093,6 @@ Proof.
     lia.
   }
   lia.
-  assert (sth : (1 <= Z.of_nat (2 ^ sz))%Z). {
-    replace 1%Z with (Z.of_nat 1); auto.
-    apply Nat2Z.inj_le.
-    apply one_le_pow2.
-  }
-  rewrite <- Zpow_of_nat.
-  lia.
-  apply Z.pow_nonzero; lia.
 Qed.
 
 Lemma combine_wones_WO :
@@ -1148,8 +1129,6 @@ Proof.
   rewrite Z.mod_small; try split; try lia.
   rewrite Z2Nat.inj_sub; try lia.
   rewrite <- Zpow_of_nat, Nat2Z.id; auto.
-  assert (H : (1 <= 2 ^ Z.of_nat sz)%Z) by (apply Zpow_1_le; lia).
-  lia.
 Qed.
 
 Lemma split1_combine_wplus :
@@ -1165,7 +1144,6 @@ Proof.
             = (wordVal2 + wordVal1 + ((wordVal0 + wordVal) * 2 ^ Z.of_nat sz1)))%Z as P0 by lia.
     rewrite P0, Z_mod_plus_full.
     reflexivity.
-  - apply Z.mul_pos_pos; try lia.
   - rewrite Z.mul_comm; eexists; reflexivity.
 Qed.
 
@@ -1179,7 +1157,6 @@ Proof.
   arithmetizeWord; simpl.
   rewrite H, Zmod_small.
   - rewrite Z2Nat.inj_add, Z2Nat.inj_mul, pow2_of_nat, Nat2Z.id ; try lia.
-    apply Z.mul_nonneg_nonneg; lia.
   - split.
     + apply Z.add_nonneg_nonneg; [|lia].
       apply Z.mul_nonneg_nonneg; lia.
@@ -1194,10 +1171,9 @@ Proof.
   unfold wordToNat, natToWord.
   simpl.
   rewrite <- Zpow_of_nat.
-  rewrite <- mod_Zmod.
+  rewrite <- Nat2Z.inj_mod.
   rewrite Nat2Z.id.
   rewrite Nat.mod_small; auto.
-  apply Nat.pow_nonzero; auto.
 Qed.
 
 Lemma wones_natToWord : forall sz, wones sz = natToWord sz (2 ^ sz - 1).
@@ -1288,9 +1264,8 @@ Proof.
   unfold wordToNat, natToWord.
   simpl.
   rewrite <- Zpow_of_nat.
-  rewrite <- mod_Zmod.
+  rewrite <- Nat2Z.inj_mod.
   rewrite Nat2Z.id. auto.
-  apply Nat.pow_nonzero; auto.
 Qed.
 
 Lemma move_wplus_wminus' sz (a b c : word sz) : a ^+ b = c <-> a = c ^- b. 
@@ -1367,7 +1342,7 @@ Qed.
 Lemma split1_combine sz1 sz2 (w : word sz1) (z : word sz2) :
   @truncLsb sz1 (sz1 + sz2) (wconcat z w) = w.
 Proof.
-  rewrite plus_comm.
+  rewrite Nat.add_comm.
   rewrite truncLsb_concat.
   auto.
 Qed.

@@ -514,11 +514,12 @@ Proof.
   - assert (length l <= n) as TMP.
     { lia. }
     rewrite Nat.sub_succ_l in *; auto.
-    + apply lt_n_Sm_le in Hlen.
-      destruct (le_lt_or_eq _ _ Hlen).
+    + apply -> Nat.lt_succ_r in Hlen.
+      destruct (le_lt_eq_dec _ _ Hlen).
       * repeat rewrite seq_eq.
         repeat rewrite fold_left_app; simpl.
-        rewrite IHn; [rewrite <- le_plus_minus; [|lia]|]; auto.
+        rewrite IHn by auto.
+        rewrite Nat.add_sub_assoc, Nat.add_comm, Nat.add_sub by auto.
         remember (nth_error l' (n - length l)) as nth_err.
         destruct nth_err.
         -- symmetry in Heqnth_err.
@@ -543,7 +544,7 @@ Proof.
               lia.
            ++ unfold inlineSingle_Flat_pos.
               rewrite <- Heqnth_err; reflexivity.
-      * rewrite <- H; simpl.
+      * rewrite <- e; simpl.
         assert (n = length l) as P0.
         { lia. }
         rewrite  P0 in *; clear TMP.
@@ -566,11 +567,11 @@ Proof.
            destruct nth_err2.
            ++ exfalso.
               assert (nth_error (l ++ l') (length l) <> None).
-              { rewrite <- Heqnth_err2; intro; inv H0. }
-              rewrite nth_error_Some in H0.
+              { rewrite <- Heqnth_err2; intro; inv H. }
+              rewrite nth_error_Some in H.
               symmetry in Heqnth_err.
               rewrite nth_error_None in Heqnth_err.
-              rewrite app_length in H0.
+              rewrite app_length in H.
               rewrite Nat.sub_diag in Heqnth_err.
               lia.
            ++ unfold inlineSingle_Flat_pos.
@@ -593,17 +594,14 @@ Proof.
   rewrite app_length, (seq_app' _ P0), fold_left_app, Nat.add_0_l.
   rewrite inlineAll_Meths_RegFile_fold_flat1; auto.
   destruct (zerop (length l')).
-  - rewrite e; rewrite minus_plus; simpl.
-    rewrite length_zero_iff_nil in e; rewrite e, app_nil_r; reflexivity.
-  - assert (0 < (length l + length l') - length l).
-    { rewrite minus_plus; assumption. }
+  - rewrite e. rewrite Nat.add_comm, Nat.add_sub; auto.
+  - assert (0 < (length l + length l') - length l) by lia.
     rewrite <- (inlineSome_Meths_pos_length l (seq 0 (Datatypes.length l))) at 1 2 3.
     rewrite <- (inlineSome_Meths_pos_length l (seq 0 (Datatypes.length l))) in H.
     rewrite inlineAll_Meths_RegFile_fold_flat2; auto.
     rewrite (inlineSome_Meths_pos_length l (seq 0 (Datatypes.length l))) in *.
-    rewrite minus_plus.
-    rewrite <- (inlineSome_Meths_pos_length l (seq 0 (Datatypes.length l)) ).
-    reflexivity.
+    repeat f_equal.
+    lia.
 Qed.
 
 Lemma inlineSingle_pos_NeverCall k ty (a : ActionT ty k) n:
@@ -793,7 +791,8 @@ Proof.
   induction n; auto; intros.
   repeat rewrite seq_eq; repeat rewrite fold_left_app; simpl.
   rewrite inlineSingle_pos_app_r; [|lia].
-  rewrite IHn, minus_plus; reflexivity.
+  rewrite IHn.
+  repeat f_equal; lia.
 Qed.
 
 Lemma inlineSome_pos_app (l1 l2 : list DefMethT) ty k (a : ActionT ty k) :
@@ -807,8 +806,9 @@ Proof.
   assert (n <= length (l1 ++ l2)) as P0.
   { rewrite app_length; lia. }
   rewrite H, H0, <- app_length.
-  rewrite (seq_app' _ P0), fold_left_app, app_length, H, minus_plus, plus_O_n.
-  rewrite inlineSome_pos_app_r, inlineSome_pos_app_l; auto.
+  rewrite (seq_app' _ P0), fold_left_app, app_length, H.
+  rewrite inlineSome_pos_app_r, inlineSome_pos_app_l by auto.
+  repeat f_equal; lia.
 Qed.
 
 Lemma SameKeys_inlineSingle_Flat meths1 meths2 n :
@@ -2749,9 +2749,7 @@ Section ESemAction_meth_collector.
 End ESemAction_meth_collector.
 
 (* Section WriteInline. *)
-Hint Rewrite unifyWO : _word_zero.
-
-
+#[export] Hint Rewrite unifyWO : _word_zero.
 
 Lemma Extension_inlineWrites {k : Kind} (ea : EActionT type k) :
   forall o uml retv rf,
@@ -5322,7 +5320,7 @@ Proof.
   unfold compileRulesRf, compileRules, compileActionsRf, compileActions.
   setoid_rewrite <-fold_left_rev_right at 2 3; repeat setoid_rewrite <-map_rev; repeat rewrite rev_involutive.
   induction rules; simpl; intros; auto.
-  rewrite (unifyWO retl) in H3; inv H3; simpl in *; EqDep_subst.
+  rewrite (unifyWO retl) in H; inv H; simpl in *; EqDep_subst.
   rewrite (unifyWO WO) in HSemCompActionT_cont;
     inv HSemCompActionT_cont; simpl in *; EqDep_subst.
   destruct regMap_a, regMap_a0.
@@ -5330,11 +5328,11 @@ Proof.
     inv HSemCompActionT_a0; simpl in *; EqDep_subst.
   specialize (ESameOldAction _ _ _ _ (SemVarRegMap _) HSemCompActionT_cont0) as TMP; subst.
   unfold WfRegMapExpr in *; dest.
-  inv H3; inv HSemRegMap.
+  inv H; inv HSemRegMap.
   rewrite <- (app_nil_l calls_cont0).
   assert (SubList rules (getRules b)) as P0.
-  { repeat intro; apply H1; right; assumption. }
-  repeat (econstructor; eauto); try (apply H4; auto); destruct a; simpl.
+  { repeat intro; apply HSubList2; right; assumption. }
+  repeat (econstructor; eauto); try (apply H0; auto); destruct a; simpl.
   unfold preCompileRegFiles in *; simpl in *.
   assert (allMeths_merge_listRf : forall lrf', getAllMethods (mergeSeparatedBaseFile lrf') = listRfMethods lrf').
   { clear.
@@ -5342,8 +5340,8 @@ Proof.
     rewrite IHlrf'; reflexivity. }
   rewrite allMeths_merge_listRf, inlineEach_inlineSome_pos, <- Extension_Compiles_iff.
   assert (NoDup (map fst o)) as P1.
-  { unfold mergeSeparatedSingle in H2; inv H2.
-    rewrite (getKindAttr_map_fst _ _ H), map_app, NoDup_app_iff; repeat split.
+  { unfold mergeSeparatedSingle in HWfMod; inv HWfMod.
+    rewrite (getKindAttr_map_fst _ _ HConsist), map_app, NoDup_app_iff; repeat split.
     - inv HWf1; unfold WfBaseModule in HWfBaseModule; dest; assumption.
     - clear - HWf2.
       induction lrf; simpl in *; [constructor|].
@@ -5354,31 +5352,31 @@ Proof.
       + repeat intro.
         specialize (HDisjRegs a0); clear - HDisjRegs H4 H5; inv HDisjRegs; contradiction.
     - repeat intro.
-      specialize (HDisjRegs a0); clear - HDisjRegs H2 H3; inv HDisjRegs; contradiction.
+      specialize (HDisjRegs a0); clear - HDisjRegs H H1; inv HDisjRegs; contradiction.
     - repeat intro.
-      specialize (HDisjRegs a0); clear - HDisjRegs H2 H3; inv HDisjRegs; contradiction.
+      specialize (HDisjRegs a0); clear - HDisjRegs H H1; inv HDisjRegs; contradiction.
   }
-  specialize (PriorityUpds_exist _ P1 ([]::upds0) (ltac:(eapply H4; eauto))
-                                 (ltac:(eapply H4; eauto))) as TMP; dest.
+  specialize (PriorityUpds_exist _ P1 ([]::upds0) (ltac:(eapply H0; eauto))
+                                 (ltac:(eapply H0; eauto))) as TMP; dest.
   eapply ECompCongruence with (old := o) (o := x); auto.
-  - intros; eapply H4; eauto.
+  - intros; eapply H0; eauto.
   - symmetry; eapply prevPrevRegsTrue; eauto.
   - unfold WfRegMapExpr; split.
     + econstructor.
     + assumption.
   - instantiate (1 := inlineAll_All_mod (mergeSeparatedSingle b lrf)); simpl.
-    rewrite <- (prevPrevRegsTrue H3); assumption.
-  - unfold WfBaseModule in H2; dest.
+    rewrite <- (prevPrevRegsTrue H); assumption.
+  - unfold WfBaseModule in *; dest.
     unfold eachRfMethodInliners.
     rewrite <- map_map, <- concat_map.
     apply WfBaseMod_inlineSome_map; auto.
-    + specialize (flatten_inline_everything_Wf (Build_ModWf H2)) as P2.
-      unfold flatten_inline_everything in P2; rewrite WfMod_createHide in P2; dest; simpl in *; inv H6; assumption.
-    +unfold mergeSeparatedSingle in H2; inv H2; inv HWf1.
-     unfold WfBaseModule in *; dest.
-     specialize (H2 _ (H1 _ (or_introl eq_refl))); simpl in H2.
-     eapply WfExpand; eauto.
-     unfold inlineAll_All_mod; simpl; apply SubList_app_r, SubList_refl.
+    + specialize (flatten_inline_everything_Wf (Build_ModWf HWfMod)) as P2.
+      unfold flatten_inline_everything in P2; rewrite WfMod_createHide in P2; dest; simpl in *; inv H2; assumption.
+    + unfold mergeSeparatedSingle in HWfMod; inv HWfMod; inv HWf1.
+      unfold WfBaseModule in *; dest.
+      specialize (H1 _ (HSubList2 _ (or_introl eq_refl))); simpl in H1.
+      eapply WfExpand; eauto.
+      unfold inlineAll_All_mod; simpl; apply SubList_app_r, SubList_refl.
   - apply inlineEeach_Somelist_inlineEach.
   - rewrite (unifyWO retl); simpl.
     assert (forall lrf, length (listRfMethods lrf) = length (EeachRfMethodInliners type Void lrf)).
@@ -5394,7 +5392,7 @@ Proof.
         repeat rewrite map_length; reflexivity.
       - unfold readSyncRegFile; destruct isAddr; repeat rewrite app_length;
           repeat rewrite map_length; reflexivity. }
-    setoid_rewrite H5.
+    setoid_rewrite H1.
     assumption.
 Qed.
 
