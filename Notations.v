@@ -185,7 +185,7 @@ Delimit Scope kami_switch_init_scope with switch_init.
 Notation "s '@%[' f <- v ]" := ltac:(struct_set_field_ltac s f v)
                                       (at level 38, only parsing): kami_expr_scope.
 
-Notation "'IF' e1 'then' e2 'else' e3" := (ITE e1 e2 e3) (at level 80) : kami_expr_scope.
+Notation "'IF' e1 'then' e2 'else' e3" := (ITE e1 e2 e3) (at level 200) : kami_expr_scope.
 
 Notation "nkind <[ def ]>" := (@NativeKind nkind def) (at level 100): kami_expr_scope.
 
