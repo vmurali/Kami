@@ -49,7 +49,7 @@ Fixpoint getDefaultConst (k: Kind): ConstT k :=
     | Array n k => ConstArray (fun _ => getDefaultConst k)
   end.
 
-Notation Default := (getDefaultConst _).
+Notation Default := (getDefaultConst _) (only parsing).
 
 Definition getDefaultConstFullKind (k : FullKind) : ConstFullT k :=
   match k with
@@ -194,7 +194,7 @@ Section Phoas.
     Definition ZeroExtend msb lsb (e: Expr (SyntaxKind (Bit lsb))): Expr (SyntaxKind (Bit (lsb + msb))) :=
       (BinBit (Concat msb lsb) (Const (wzero msb))) e.
 
-    Definition SignExtend lsb msb: Expr (SyntaxKind (Bit lsb)) -> Expr (SyntaxKind (Bit (lsb + msb))).
+    Definition SignExtend msb lsb: Expr (SyntaxKind (Bit lsb)) -> Expr (SyntaxKind (Bit (lsb + msb))).
       refine
         match lsb return Expr (SyntaxKind (Bit lsb)) -> Expr (SyntaxKind (Bit (lsb + msb))) with
         | 0 => fun _ => Const (wzero msb)
@@ -234,7 +234,7 @@ Section Phoas.
       Expr (SyntaxKind (Bit no)).
       refine
         match Compare_dec.lt_dec ni no with
-        | left isLt => castBits _ (@SignExtend ni (no - ni) e)
+        | left isLt => castBits _ (@SignExtend (no - ni) ni e)
         | right isGe => UniBit (TruncLsb no (ni - no)) (castBits _ e)
         end; abstract lia.
     Defined.
@@ -252,7 +252,7 @@ Section Phoas.
       Expr (SyntaxKind (Bit no)).
       refine
         match Compare_dec.lt_dec ni no with
-        | left isLt => castBits _ (@SignExtend ni (no - ni) e)
+        | left isLt => castBits _ (@SignExtend (no - ni) ni e)
         | right isGe => UniBit (TruncMsb (ni - no) no) (castBits _ e)
         end; abstract lia.
     Defined.
