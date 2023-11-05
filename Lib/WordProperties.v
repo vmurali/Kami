@@ -1393,3 +1393,94 @@ Lemma wltu_ge {n} (w1 w2 : word n):
 Proof.
   rewrite wltu_wordToNat, Nat.ltb_ge; split; intro; auto.
 Qed.
+
+Theorem ZToWord_wordVal n (w: word n): ZToWord n (wordVal n w) = w.
+Proof.
+  apply eq_wordVal.
+  rewrite getWordVal; auto.
+  destruct w; simpl.
+  apply boundProofZ; auto.
+Qed.
+
+Theorem wsub_0_iff_eq n (a b: word n) : a = b <-> a ^+ (wnot b) ^+ $1 = wzero n.
+Proof.
+  constructor.
+  - intros.
+    subst.
+    rewrite wneg_wnot; unfold natToWord; simpl.
+    rewrite wminus_def.
+    rewrite wplus_assoc.
+    rewrite wminus_inv.
+    rewrite <- wplus_assoc.
+    rewrite (wplus_comm n (^~ (ZToWord n 1))).
+    rewrite wminus_inv.
+    rewrite wplus_wzero.
+    reflexivity.
+  - intros H.
+    apply eq_wordVal.
+    apply (f_equal (wordVal n)) in H.
+    unfold wnot in H.
+    rewrite getWordVal in H by lia.
+    rewrite <- Z.add_opp_r in H.
+    rewrite ZToWord_plus in H.
+    rewrite ZToWord_wordVal in H.
+    rewrite wplus_assoc in H.
+    rewrite <- (@wplus_assoc n (a ^+ ^~b)) in H.
+    unfold natToWord in H.
+    rewrite <- ZToWord_plus in H.
+    rewrite Z.add_opp_diag_l in H.
+    rewrite wadd_wzero_1 in H.
+    unfold wneg, wadd in H.
+    destruct a as [aVal aEq]; destruct b as [bVal bEq].
+    simpl in *.
+    rewrite <- aEq in H.
+    rewrite <- Z.add_mod in H by lia.
+    rewrite <- Z.add_opp_r in H.
+    rewrite Z.add_assoc in H.
+    rewrite (Z.add_comm aVal) in H.
+    rewrite <- Z.add_assoc in H.
+    rewrite Z.add_comm in H.
+    assert (sth: (2 ^ Z.of_nat n = 1 * 2 ^ Z.of_nat n)%Z) by lia.
+    rewrite sth in H at 1; clear sth.
+    rewrite Z.mod_add in H by lia.
+    pose proof (Z_mod_lt aVal (2^Z.of_nat n) ltac:(lia)) as [sth1 sth2].
+    pose proof (Z_mod_lt bVal (2^Z.of_nat n) ltac:(lia)) as [sth3 sth4].
+    rewrite aEq in sth1, sth2.
+    rewrite bEq in sth3, sth4.
+    rewrite Z.add_opp_r in H.
+    pose proof (Z_div_exact_full_2 (aVal - bVal)%Z (2 ^ Z.of_nat n) ltac:(lia) H) as sth.
+    assert (X1: ((aVal - bVal) < 2^Z.of_nat n)%Z) by lia.
+    assert (X2: (- 2^Z.of_nat n < aVal - bVal)%Z) by lia.
+    remember ((aVal - bVal) / 2 ^ Z.of_nat n)%Z as Q.
+    assert (P: (Q = 0 \/ Q >= 1 \/ -1 >= Q)%Z) by lia.
+    destruct P as [Q0 | [Qge | Qle]].
+    + lia.
+    + apply Zmult_ge_compat_l with (p := (2^Z.of_nat n)%Z) in Qge; lia.
+    + apply Zmult_ge_compat_l with (p := (2^Z.of_nat n)%Z) in Qle; lia.
+Qed.
+
+Theorem wsub_as_wnot n (a b: word n): wsub a b = a ^+ (wnot b) ^+ $1.
+Proof.
+  unfold wsub.
+  rewrite <- Z.add_opp_r.
+  rewrite ZToWord_plus.
+  rewrite <- wplus_assoc.
+  rewrite ZToWord_wordVal.
+  f_equal.
+  apply eq_wordVal.
+  destruct a as [aVal aEq].
+  destruct b as [bVal bEq].
+  simpl.
+  rewrite <- (Z.add_opp_r _ 1%Z).
+  rewrite <- Zplus_mod.
+  rewrite <- Z.add_assoc.
+  simpl.
+  rewrite Z.add_0_r.
+  rewrite Zmod_mod.
+  rewrite <- Z.add_opp_r.
+  rewrite Z.add_comm.
+  assert (sth: (-bVal + 2^Z.of_nat n = -bVal + 1 * 2^Z.of_nat n)%Z) by lia.
+  rewrite sth.
+  rewrite Z_mod_plus by lia.
+  auto.
+Qed.
