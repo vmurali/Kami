@@ -136,7 +136,7 @@ Notation "e1 .& e2" := (CABit (Band) (e1 :: e2 :: nil)) (at level 201)
 Notation "e1 .| e2" := (Kor (e1 :: e2 :: nil)) (at level 201)
                        : kami_expr_scope.
 Notation "e1 .^ e2" := (CABit (Bxor) (e1 :: e2 :: nil)) (at level 201) : kami_expr_scope.
-Infix "-" := (BinBit (Sub _)) : kami_expr_scope.
+Notation "e1 - e2" := (CABit (Add) (e1 :: (UniBit (Inv _) e2) :: (Const _ (natToWord _ 1)) :: nil)) : kami_expr_scope.
 Infix "/" := (BinBit (Div _)) : kami_expr_scope.
 Infix "%%" := (BinBit (Rem _)) (at level 100): kami_expr_scope.
 Infix "<<" := (BinBit (Sll _ _)) (at level 100) : kami_expr_scope.
