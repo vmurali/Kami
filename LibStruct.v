@@ -1,11 +1,19 @@
 Require Import Kami.Syntax Kami.Notations.
 
 (* TODO: move to KamiStdLib? *)
-Definition extractArbitraryRange ty sz (inst: Bit sz ## ty) (range: nat * nat):
-  Bit (fst range + 1 - snd range) ## ty :=
-  (LETE i <- inst ;
-     RetE (ConstExtract (snd range) (fst range + 1 - snd range) (sz - 1 - fst range)
-                        (ZeroExtendTruncLsb _ #i)))%kami_expr.
+Definition extractArbitraryRange ty sz (inst: LetExprSyntax ty (Bit sz)) (range: nat * nat):
+  LetExprSyntax ty (Bit (fst range + 1 - snd range)) :=
+  (LetE inst (fun i =>
+                NormExpr (ConstExtract (snd range) (fst range + 1 - snd range) (sz - 1 - fst range)
+                            (ZeroExtendTruncLsb _ (Var _ (SyntaxKind _) i))))).
+
+Notation extractFieldExpr sz e start width :=
+  (UniBit (TruncMsb start width)
+     (UniBit (TruncLsb (start + width) (sz - (start + width))) e)).
+
+Notation extractFieldExprDynamicWidth e start width :=
+  (UniBit (TruncLsb start width)
+     (ZeroExtendTruncLsb (start + width) e)).
 
 (* Useful Struct:
    TODO: move notation versions to StdLibKami*)
@@ -17,10 +25,13 @@ Definition Pair (A B: Kind) := STRUCT_TYPE {
                                    "fst" :: A;
                                    "snd" :: B }.
 
-Definition Invalid {ty: Kind -> Type} {k} := (STRUCT { "valid" ::= $$ false ; "data" ::= $$ (getDefaultConst k) })%kami_expr.
-
 Local Open Scope kami_action.
 Local Open Scope kami_expr.
+
+Definition mkPair ty A B (a: A @# ty) (b: B @# ty) : Pair A B @# ty :=
+  STRUCT { "fst" ::= a; "snd" ::= b }.
+
+Definition Invalid {ty: Kind -> Type} {k} := STRUCT { "valid" ::= $$ false ; "data" ::= $$ (getDefaultConst k) }.
 
 Definition nullStruct: Kind :=
   (Struct (fun i => @Fin.case0 _ i) (fun i => @Fin.case0 _ i)).

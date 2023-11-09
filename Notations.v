@@ -163,6 +163,20 @@ Notation "x != y" := (UniBool Neg (Eq x y))
 Notation "v @[ idx ] " := (ReadArray v idx) (at level 38) : kami_expr_scope.
 Notation "v '@[' idx <- val ] " := (UpdateArray v idx val) (at level 38) : kami_expr_scope.
 
+Fixpoint natToFin i n : Fin.t (S n) :=
+  match n return Fin.t (S n) with
+  | 0 => Fin.F1
+  | S m => match i with
+           | 0 => Fin.F1
+           | S k => Fin.FS (natToFin k m)
+           end
+  end.
+
+Definition ReadArrayNat ty n k (arr: Expr ty (SyntaxKind (Array (S n) k))) i :=
+  ReadArrayConst arr (@natToFin i n).
+
+Notation "arr ![ i ]" := (@ReadArrayNat _ _ _ arr i) (at level 38) : kami_expr_scope.
+
 Notation "s @% f" := ltac:(struct_get_field_ltac s%kami_expr f%string)
                             (at level 38, only parsing): kami_expr_scope.
 

@@ -370,6 +370,11 @@ Section Phoas.
             (fun i => unpack _ (ConstExtract (proj1_sig (Fin.to_nat i) * size k) _ _
                                              (@castBits _ _ (helper_array _ _) e)))
       end.
+
+    Definition isNotZero n (e: Expr (SyntaxKind (Bit n))) := unpack Bool (UniBit (UOr n) e).
+    Definition isZero n (e: Expr (SyntaxKind (Bit n))) := UniBool Neg (isNotZero e).
+    Definition isAllOnes n (e: Expr (SyntaxKind (Bit n))) := unpack Bool (UniBit (UAnd n) e).
+
   End BitOps.
   
   Inductive BitFormat :=
