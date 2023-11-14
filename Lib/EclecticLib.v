@@ -20,6 +20,12 @@ Section NubBy.
                              else x :: acc) nil ls.
 End NubBy.
 
+Definition prevFinVal n (i: Fin.t (S n)) :=
+  match i with
+  | Fin.F1 _ => Fin.F1
+  | Fin.FS _ j => L_R 1 j
+  end.
+
 Section Tree.
   Inductive Tree (A: Type): Type :=
   | Leaf (_: list A)
