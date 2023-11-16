@@ -23,6 +23,17 @@ Section Named.
       with Register @^"pipe" : Bit sz <- Default
       with Register @^"pipeValid": Bool <- false
 
+      with Rule @^"send" :=
+      ( Read pipeValid: Bool <- @^"pipeValid" ;
+        If #pipeValid
+        then (  
+          Read pipe: Bit sz <- @^"pipe" ;
+          Call "counterVal"(#pipe: _);
+          Write @^"pipeValid" <- $$false ;
+          Retv )
+        else Retv;
+        Retv )
+
       with Rule @^"inc" :=
       ( Read pipeValid: Bool <- @^"pipeValid" ;
         If !#pipeValid
@@ -34,17 +45,6 @@ Section Named.
           Retv )
         else Retv;
         Retv)
-
-      with Rule @^"send" :=
-      ( Read pipeValid: Bool <- @^"pipeValid" ;
-        If #pipeValid
-        then (  
-          Read pipe: Bit sz <- @^"pipe" ;
-          Call "counterVal"(#pipe: _);
-          Write @^"pipeValid" <- $$false ;
-          Retv )
-        else Retv;
-        Retv )
     }.
       
 
@@ -71,7 +71,6 @@ Ltac bsimplify_simulatingRule name :=
   exists name;
   eexists; split; [eauto| do 2 eexists; split; [discharge_SemAction|]].
 
-(* 
   (* Proving the trace inclusion of the implementation with respect to the spec *)
   Theorem Incrementer_TraceInclusion:
     TraceInclusion (Base IncrementerImpl) (Base IncrementerSpec).
@@ -110,5 +109,4 @@ Ltac bsimplify_simulatingRule name :=
       Unshelve.
       all: repeat constructor.
 Qed.
-*)
 End Named.
