@@ -177,9 +177,6 @@ Definition ReadArrayNat ty n k (arr: Expr ty (SyntaxKind (Array (S n) k))) i :=
 
 Notation "arr ![ i ]" := (@ReadArrayNat _ _ _ arr i) (at level 38) : kami_expr_scope.
 
-Notation "s @% f" := ltac:(struct_get_field_ltac s%kami_expr f%string)
-                            (at level 38, only parsing): kami_expr_scope.
-
 Declare Scope kami_struct_init_scope.
 Notation "name ::= value" :=
   (existT (fun a : Attribute Kind => Expr _ (SyntaxKind (snd a)))
@@ -195,6 +192,43 @@ Declare Scope kami_switch_init_scope.
 Notation "name ::= value" :=
   (name, value) (only parsing): kami_switch_init_scope.
 Delimit Scope kami_switch_init_scope with switch_init.
+
+Ltac test name n :=
+  match type of name with
+  | string => idtac name
+  | _ => fail 0 name n "failed1"
+  end;
+  match type of n with
+  | nat => idtac n
+  | _ => fail 0 name n "failed2"
+  end.
+Ltac test2 name n :=
+  match type of name with
+  | string => match type of n with
+              | nat => idtac n
+              | _ => fail 2 name n "failed2"
+              end
+  | _ => fail 1 name n "failed1"
+  end.
+
+Ltac struct_get_field_ltac structExpr name :=
+  let mayI := eval cbv in (structGetFieldIndexFromExpr name structExpr) in
+    match mayI with
+    | Some ?i => exact (ReadStruct structExpr i)
+    | None => fail 2 "Field not found when reading" name "field from structExpr" structExpr
+    | _ => fail 0 "Index Reduction Error when reading field" name "field from structExpr" structExpr
+    end.
+
+Ltac struct_set_field_ltac structExpr name newVal :=
+  let mayI := eval cbv in (structGetFieldIndexFromExpr name structExpr) in
+    match mayI with
+    | Some ?i => exact (UpdateStruct structExpr i newVal)
+    | None => fail 2 "Field not found when updating" name "field from structExpr" structExpr
+    | _ => fail 0 "Index Reduction Error when updating field" name "field from structExpr" structExpr
+    end.
+
+Notation "s @% f" := ltac:(struct_get_field_ltac s%kami_expr f%string)
+                            (at level 38, only parsing): kami_expr_scope.
 
 Notation "s '@%[' f <- v ]" := ltac:(struct_set_field_ltac s f v)
                                       (at level 38, only parsing): kami_expr_scope.
@@ -229,6 +263,13 @@ Notation "'LETC' name <- v ; c " :=
 Notation "'LETC' name : t <- v ; c " :=
   (LETE name : t <- RetE v ; c)%kami_expr
                                (at level 13, right associativity, name at level 99) : kami_expr_scope.
+Notation "'LETAE' name <- act ; cont " :=
+  (LetAction (convertLetExprSyntax_ActionT act) (fun name => cont))
+    (at level 13, right associativity, name at level 99) : kami_action_scope.
+Notation "'LETAE' name : t <- act ; cont " :=
+  (LetAction (k := t) (convertLetExprSyntax_ActionT act) (fun name => cont))
+    (at level 13, right associativity, name at level 99) : kami_action_scope.
+  
 Notation "'SystemE' ls ; c " :=
   (SysE ls c)%kami_expr (at level 13, right associativity, ls at level 99): kami_expr_scope.
 Notation "'IfE' cexpr 'then' tact 'else' fact 'as' name ; cont " :=

@@ -20,7 +20,7 @@ Global Open Scope list_scope.
 Inductive Kind :=
 | Bool    : Kind
 | Bit     : nat -> Kind
-| Struct  : forall n, (Fin.t n -> Kind) -> (Fin.t n -> string) -> Kind
+| Struct  : forall n, (Fin.t n -> (string * Kind)) -> Kind
 | Array   : nat -> Kind -> Kind.
 
 Inductive FullKind: Type :=
@@ -30,7 +30,7 @@ Inductive FullKind: Type :=
 Inductive ConstT: Kind -> Type :=
 | ConstBool: bool -> ConstT Bool
 | ConstBit n: word n -> ConstT (Bit n)
-| ConstStruct n fk fs (fv: forall i, ConstT (fk i)): ConstT (@Struct n fk fs)
+| ConstStruct n fsk (fv: forall i, ConstT (snd (fsk i))): ConstT (@Struct n fsk)
 | ConstArray n k (fk: Fin.t n -> ConstT k): ConstT (Array n k).
 
 Inductive ConstFullT: FullKind -> Type :=
@@ -44,8 +44,8 @@ Fixpoint getDefaultConst (k: Kind): ConstT k :=
   match k with
     | Bool => ConstBool false
     | Bit n => ConstBit (wzero n)
-    | Struct n fk fs =>
-      ConstStruct fk fs (fun i => getDefaultConst (fk i))
+    | Struct n fsk =>
+      ConstStruct fsk (fun i => getDefaultConst (snd (fsk i)))
     | Array n k => ConstArray (fun _ => getDefaultConst k)
   end.
 
@@ -98,7 +98,7 @@ Fixpoint type (k: Kind): Type :=
   match k with
   | Bool => bool
   | Bit n => word n
-  | Struct n fk fs => forall i, type (fk i)
+  | Struct n fsk => forall i, type (snd (fsk i))
   | Array n k' => Fin.t n -> type k'
   end.
 
@@ -106,7 +106,7 @@ Fixpoint evalConstT k (e: ConstT k): type k :=
   match e in ConstT k return type k with
     | ConstBool b => b
     | ConstBit n w => w
-    | ConstStruct n fk fs fv => fun i => evalConstT (fv i)
+    | ConstStruct n fsk fv => fun i => evalConstT (fv i)
     | ConstArray n k' fv => fun i => evalConstT (fv i)
   end.
 
@@ -132,12 +132,12 @@ Section Phoas.
                       Expr (SyntaxKind Bool)
   | ITE k: Expr (SyntaxKind Bool) -> Expr k -> Expr k -> Expr k
   | Eq k: Expr (SyntaxKind k) -> Expr (SyntaxKind k) -> Expr (SyntaxKind Bool)
-  | ReadStruct n (fk: Fin.t n -> Kind) (fs: Fin.t n -> string)
-               (e: Expr (SyntaxKind (Struct fk fs))) i:
-      Expr (SyntaxKind (fk i))
-  | BuildStruct n (fk: Fin.t n -> Kind) (fs: Fin.t n -> string)
-                (fv: forall i, Expr (SyntaxKind (fk i))):
-      Expr (SyntaxKind (Struct fk fs))
+  | ReadStruct n (fsk: Fin.t n -> (string * Kind))
+               (e: Expr (SyntaxKind (Struct fsk))) i:
+      Expr (SyntaxKind (snd (fsk i)))
+  | BuildStruct n (fsk: Fin.t n -> (string * Kind))
+                (fv: forall i, Expr (SyntaxKind (snd (fsk i)))):
+      Expr (SyntaxKind (Struct fsk))
   | ReadArray n m k: Expr (SyntaxKind (Array n k)) ->
                    Expr (SyntaxKind (Bit m)) ->
                    Expr (SyntaxKind k)
@@ -167,16 +167,16 @@ Section Phoas.
                   | right _ => ReadArrayConst e i'
                   end).
 
-  Definition UpdateStruct n (fk: Fin.t n -> Kind) (fs: Fin.t n -> string)
-             (e: Expr (SyntaxKind (Struct fk fs))) i (v: Expr (SyntaxKind (fk i))) :=
-    BuildStruct fk fs (fun i' => match Fin_eq_dec i i' with
-                                 | left pf =>
+  Definition UpdateStruct n (fsk: Fin.t n -> (string * Kind))
+             (e: Expr (SyntaxKind (Struct fsk))) i (v: Expr (SyntaxKind (snd (fsk i)))) :=
+    BuildStruct fsk (fun i' => match Fin_eq_dec i i' with
+                               | left pf =>
                                    match pf in _ = Y return
-                                         Expr (SyntaxKind (fk Y)) with
+                                         Expr (SyntaxKind (snd (fsk Y))) with
                                    | eq_refl => v
                                    end
-                                 | right _ => ReadStruct e i'
-                                 end).
+                               | right _ => ReadStruct e i'
+                               end).
 
   Section BitOps.
     Definition castBits ni no (pf: ni = no) (e: Expr (SyntaxKind (Bit ni))) :=
@@ -279,8 +279,8 @@ Section Phoas.
       match k with
       | Bool => 1
       | Bit n => n
-      | Struct n fk fs =>
-        sumSizes (fun i => size (fk i))
+      | Struct n fsk =>
+        sumSizes (fun i => size (snd (fsk i)))
       | Array n k => n * size k
       end.
     (* ConstExtract: LSB, MIDDLE, MSB *)
@@ -306,10 +306,10 @@ Section Phoas.
       match k return Expr (SyntaxKind k) -> Expr (SyntaxKind (Bit (size k))) with
       | Bool => fun e => (ITE e (Const (WO~1)%word) (Const (WO~0)%word))
       | Bit n => fun e => e
-      | Struct n fk fs =>
+      | Struct n fsk =>
         fun e =>
-          concatStructExpr (fun i => size (fk i))
-                           (fun i => @pack (fk i) (ReadStruct e i))
+          concatStructExpr (fun i => size (snd (fsk i)))
+                           (fun i => @pack (snd (fsk i)) (ReadStruct e i))
       | Array n k =>
         fun e =>
           (fix help i :=
@@ -355,15 +355,15 @@ Section Phoas.
       match k return Expr (SyntaxKind (Bit (size k))) -> Expr (SyntaxKind k) with
       | Bool => fun e => Eq e (Const (WO~1)%word)
       | Bit _ => fun e => e
-      | Struct n fk fs =>
+      | Struct n fsk =>
         fun e => BuildStruct
-                   _ _
+                   _
                    (fun i =>
                       unpack
                         _
                         (ConstExtract
-                           _ _ (sumSizesMsbs i (fun j => size (fk j)))
-                           (@castBits _ _ (helper_sumSizes i (fun j => size (fk j))) e)))
+                           _ _ (sumSizesMsbs i (fun j => size (snd (fsk j))))
+                           (@castBits _ _ (helper_sumSizes i (fun j => size (snd (fsk j)))) e)))
       | Array n k =>
         fun e =>
           BuildArray
@@ -387,14 +387,14 @@ Section Phoas.
   Inductive FullFormat: Kind -> Type :=
   | FBool: nat -> BitFormat -> FullFormat Bool
   | FBit n: nat -> BitFormat -> FullFormat (Bit n)
-  | FStruct n fk fs: (forall i, FullFormat (fk i)) -> FullFormat (@Struct n fk fs)
+  | FStruct n fsk: (forall i, FullFormat (snd (fsk i))) -> FullFormat (@Struct n fsk)
   | FArray n k: FullFormat k -> FullFormat (@Array n k).
 
   Fixpoint fullFormatHex k : FullFormat k :=
     match k return FullFormat k with
     | Bool => FBool 1 Hex
     | Bit n => FBit n ((n+3)/4) Hex
-    | Struct n fk fs => FStruct fk fs (fun i => fullFormatHex (fk i))
+    | Struct n fsk => FStruct fsk (fun i => fullFormatHex (snd (fsk i)))
     | Array n k => FArray n (fullFormatHex k)
     end.
 
@@ -402,7 +402,7 @@ Section Phoas.
     match k return FullFormat k with
     | Bool => FBool 1 Binary
     | Bit n => FBit n n Binary
-    | Struct n fk fs => FStruct fk fs (fun i => fullFormatBinary (fk i))
+    | Struct n fsk => FStruct fsk (fun i => fullFormatBinary (snd (fsk i)))
     | Array n k => FArray n (fullFormatBinary k)
     end.
 
@@ -410,7 +410,7 @@ Section Phoas.
     match k return FullFormat k with
     | Bool => FBool 1 Decimal
     | Bit n => FBit n 0 Decimal
-    | Struct n fk fs => FStruct fk fs (fun i => fullFormatDecimal (fk i))
+    | Struct n fsk => FStruct fsk (fun i => fullFormatDecimal (snd (fsk i)))
     | Array n k => FArray n (fullFormatDecimal k)
     end.
 
@@ -550,19 +550,17 @@ Definition getRules m :=
   end.
 
 Definition getStruct ls :=
-  (Struct (fun i => snd (nth_Fin ls i)) (fun j => fst (nth_Fin ls j))).
+  (Struct (fun i => nth_Fin ls i)).
 Arguments getStruct : simpl never.
 
 Definition getStructVal ty ls :=
-  (BuildStruct (fun i => snd (nth_Fin (map (@projT1 _ _) ls) i))
-               (fun j => fst (nth_Fin (map (@projT1 _ _) ls) j))
+  (BuildStruct (fun i => nth_Fin (map (@projT1 _ _) ls) i)
                (fun k => nth_Fin_map2 (@projT1 _ _) (fun x => Expr ty (SyntaxKind (snd x)))
                                       ls k (projT2 (nth_Fin ls (Fin.cast k (map_length_red (@projT1 _ _) ls)))))).
 Arguments getStructVal : simpl never.
 
 Definition getStructConst ls :=
-  (ConstStruct (fun i => snd (nth_Fin (map (@projT1 _ _) ls) i))
-               (fun j => fst (nth_Fin (map (@projT1 _ _) ls) j))
+  (ConstStruct (fun i => nth_Fin (map (@projT1 _ _) ls) i)
                (fun k => nth_Fin_map2 (@projT1 _ _) (fun x => ConstT (snd x))
                                       ls k (projT2 (nth_Fin ls (Fin.cast k (map_length_red (@projT1 _ _) ls)))))).
 Arguments getStructConst : simpl never. 
@@ -1350,17 +1348,30 @@ Proof.
     | Bool, Bool => true
     | Bit n, Bit m => Nat.eqb n m
     | Array n k, Array m k' => Nat.eqb n m && Kind_decb k k'
-    | Struct n ks fs, Struct m ks' fs' => _
+    | Struct n fsk, Struct m fsk' => _
     | _,_ => false
     end).
   destruct (Nat.eqb n m) eqn:G.
-  exact (Fin_forallb (fun i => Kind_decb (ks i) (ks' (Fin_cast i (mk_eq _ _ G)))) && Fin_forallb (fun i => String.eqb (fs i) (fs' (Fin_cast i (mk_eq _ _ G))))).
-  exact false.
+  - exact (Fin_forallb (fun i => Kind_decb (snd (fsk i)) (snd (fsk' (Fin_cast i (mk_eq _ _ G))))) &&
+             Fin_forallb (fun i => String.eqb (fst (fsk i)) (fst (fsk' (Fin_cast i (mk_eq _ _ G)))))).
+  - exact false.
 Defined.
+
+Definition Kind_custom_ind :=
+  fun (P : Kind -> Type) (f : P Bool) (f0 : forall n : nat, P (Bit n))
+      (f1 : forall (n : nat) (p : t n -> string * Kind), (forall i : t n, P (snd (p i))) -> P (Struct p))
+      (f2 : forall (n : nat) (k : Kind), P k -> P (Array n k)) =>
+    fix F (k : Kind) : P k :=
+    match k as k0 return (P k0) with
+    | Bool => f
+    | Bit n => f0 n
+    | @Struct n p => @f1 n p (fun i => F (snd (p i)))
+    | Array n k0 => f2 n k0 (F k0)
+    end.
 
 Lemma Kind_decb_refl : forall k, Kind_decb k k = true.
 Proof.
-  induction k; simpl; auto.
+  induction k using Kind_custom_ind; simpl; auto.
   - apply Nat.eqb_refl.
   -
     rewrite silly_lemma_true with (pf := (Nat.eqb_refl _)) by apply Nat.eqb_refl.
@@ -1373,7 +1384,7 @@ Qed.
 
 Lemma Kind_decb_eq : forall k1 k2, Kind_decb k1 k2 = true <-> k1 = k2.
 Proof.
-  induction k1; intros; destruct k2; split; intro; try (reflexivity || discriminate).
+  induction k1 using Kind_custom_ind; intros; destruct k2; split; intro; try (reflexivity || discriminate).
   - simpl in H; rewrite Nat.eqb_eq in H; congruence.
   - inversion H; simpl; apply Nat.eqb_refl.
   - destruct (n =? n0)%nat eqn:G.
@@ -1385,7 +1396,9 @@ Proof.
       rewrite (hedberg Nat.eq_dec _ eq_refl) in G1,G2; simpl in *.
       setoid_rewrite H in G1.
       setoid_rewrite String.eqb_eq in G2.
-      f_equal; extensionality i; auto.
+      f_equal; extensionality i.
+      specialize (G1 i); specialize (G2 i).
+      destruct (p i), (p0 i); simpl in *; subst; auto.
     + simpl in H0.
       rewrite silly_lemma_false in H0; try discriminate; auto.
   - rewrite H0; apply Kind_decb_refl.
@@ -1426,7 +1439,7 @@ Defined.
 Lemma isEq k: forall (e1: type k) (e2: type k),
     {e1 = e2} + {e1 <> e2}.
 Proof.
-  induction k; intros.
+  induction k using Kind_custom_ind; intros.
   - apply bool_dec.
   - apply weq.
   - induction n.
@@ -1434,7 +1447,7 @@ Proof.
       extensionality x.
       apply Fin.case0.
       apply x.
-    + destruct (IHn (fun i => k (Fin.FS i)) (fun i => X (Fin.FS i)) (fun i => s (Fin.FS i))
+    + destruct (IHn (fun i => p (Fin.FS i)) (fun i => X (Fin.FS i))
                     (fun i => e1 (Fin.FS i)) (fun i => e2 (Fin.FS i))).
       * destruct (X Fin.F1 (e1 Fin.F1) (e2 Fin.F1)).
         -- left.
@@ -1543,8 +1556,8 @@ Fixpoint evalKorOpBin (k : Kind) : type k -> type k -> type k :=
   | Bool => orb
   | Bit n => @wor n
   | Array n k' => fun a1 a2 => (fun i => (evalKorOpBin k' (a1 i) (a2 i)))
-  | Struct n fv _ => fun (s1 s2 : forall i, type (fv i)) =>
-                     (fun i => (evalKorOpBin (fv i) (s1 i) (s2 i)))
+  | Struct n fsk => fun (s1 s2 : forall i, type (snd (fsk i))) =>
+                      (fun i => (evalKorOpBin (snd (fsk i)) (s1 i) (s2 i)))
   end.
 
 Definition evalKorOp (k : Kind) : list (type k) -> type k -> type k :=
@@ -1576,8 +1589,8 @@ Section Semantics.
                          then @evalExpr _ e1
                          else @evalExpr _ e2
       | Eq _ e1 e2 => getBool (isEq _ (@evalExpr _ e1) (@evalExpr _ e2))
-      | ReadStruct n fk fs e i => (@evalExpr _ e) i
-      | BuildStruct n fk fs fv => fun i => @evalExpr _ (fv i)
+      | ReadStruct n fsk e i => (@evalExpr _ e) i
+      | BuildStruct n fsk fv => fun i => @evalExpr _ (fv i)
       | ReadArray n m k fv i =>
         match lt_dec (Z.to_nat (wordVal _ (@evalExpr _ i))) n with
         | left pf => fun fv => fv (Fin.of_nat_lt pf)
@@ -2315,135 +2328,86 @@ Definition separateModHidesNoInline (m : Mod) :=
   let '(hides, (rfs, mods)) := separateMod m in
   (hides, (rfs, getFlat (mergeSeparatedBaseMod mods))).
 
-(* Helper functions for struct - Gallina versions of getters and setters *)
+Section StructStringField.
+  (* Helper functions for struct - Gallina versions of getters and setters *)
 
-Local Definition option_bind
-  (T U : Type)
-  (x : option T)
-  (f : T -> option U)
-  :  option U
-  := match x with
-       | Some y => f y
-       | None => None
-     end.
+  Definition bindOption (A B : Type) (a : option A) (f : A -> option B) :=
+    match a with
+    | Some x => f x
+    | None => None
+    end.
 
-Local Notation "X >>- F" := (option_bind X F) (at level 85, only parsing).
+  Local Notation "X >>= F" := (bindOption X F) (at level 85, only parsing).
+  Variable name: string.
 
-Fixpoint struct_get_field_index'
-         (name: string) n
-  := match n return
-         forall (get_name : Fin.t n -> string),
-                option (Fin.t n)
-     with
-     | 0 => fun _ => None
-     | S m => fun get_name =>
-       if String.eqb (get_name Fin.F1) name
-       then Some Fin.F1
-       else match struct_get_field_index' name _ (fun i => get_name (Fin.FS i)) with
-            | Some i => Some (Fin.FS i)
-            | None => None
-            end
-     end.
+  Fixpoint structGetFieldIndex n :=
+    match n return (Fin.t n -> string * Kind) -> option (Fin.t n) with
+    | 0 => fun _ => None
+    | S m => fun nameKind =>
+               if String.eqb (fst (nameKind Fin.F1)) name
+               then Some Fin.F1
+               else match structGetFieldIndex _ (fun i => nameKind (Fin.FS i)) with
+                    | Some i => Some (Fin.FS i)
+                    | None => None
+                    end
+    end.
 
-Definition struct_get_field_index n (kinds: Fin.t n -> Kind) (names: Fin.t n -> string) ty (e: Expr ty (SyntaxKind (Struct kinds names))) name
-  := struct_get_field_index' name names.
+  Definition structGetFieldIndexFromExpr ty n ls (e: Expr ty (SyntaxKind (Struct ls))) :=
+    @structGetFieldIndex n ls.
 
-Local Definition struct_get_field_aux
-  (ty: Kind -> Type)
-  (n : nat)
-  (get_kind : Fin.t n -> Kind)
-  (get_name : Fin.t n -> string)
-  (packet : Expr ty (SyntaxKind (Struct get_kind get_name)))
-  (name : string)
-  :  option ({kind : Kind & Expr ty (SyntaxKind kind)})
-  := struct_get_field_index packet name >>-
-       fun index
-         => Some
-              (existT
-                (fun kind : Kind => Expr ty (SyntaxKind kind))
-                (get_kind index)
-                (ReadStruct packet index)).
+  Section SpecificStruct.
+    Variable ty: Kind -> Type.
+    Variable n: nat.
+    Variable ls: Fin.t n -> string * Kind.
+    Variable expr: Expr ty (SyntaxKind (Struct ls)).
+    Local Definition structGetFieldMaybeExpr : option ({k : Kind & Expr ty (SyntaxKind k)}) :=
+      structGetFieldIndex ls >>= (fun i => Some (existT _ _ (ReadStruct expr i))).
 
-Definition struct_get_field
-  (ty: Kind -> Type)
-  (n : nat)
-  (get_value : Fin.t n -> Kind)
-  (get_name : Fin.t n -> string)
-  (packet : Expr ty (SyntaxKind (Struct get_value get_name)))
-  (name : string)
-  (k : Kind)
-  :  option (Expr ty (SyntaxKind k)).
-Proof.
-refine (let y := @struct_get_field_aux ty n get_value get_name packet name in
-        match y with
-        | None => None
-        | Some (existT x y) => _
-        end).
-destruct (Kind_decb x k) eqn:G.
-- apply Kind_decb_eq in G.
-  subst.
-  exact (Some y).
-- exact None.
-Defined.
+    Definition structGetFieldKindMaybeExpr k : option (Expr ty (SyntaxKind k)) :=
+      match structGetFieldMaybeExpr with
+      | None => None
+      | Some (existT k' val) =>
+          match Kind_decb k' k as b return Kind_decb k' k = b -> option (Expr ty (SyntaxKind k)) with
+          | true =>
+              fun pf =>
+                eq_rect k' (fun x => option (Expr ty (SyntaxKind x))) (Some val) k (proj1 (Kind_decb_eq _ _) pf)
+          | false => fun _ => None
+          end eq_refl
+      end.
 
-Definition struct_get_field_default
-  (ty: Kind -> Type)
-  (n : nat)
-  (get_value : Fin.t n -> Kind)
-  (get_name : Fin.t n -> string)
-  (packet : Expr ty (SyntaxKind (Struct get_value get_name)))
-  (name : string)
-  (kind : Kind)
-  (default : Expr ty (SyntaxKind kind))
-  :  Expr ty (SyntaxKind kind)
-  := match struct_get_field packet name kind with
-       | Some field_value => field_value
-       | None => default
-     end.
+    Definition structGetFieldKindExprDefault k : Expr ty (SyntaxKind k) :=
+      match structGetFieldKindMaybeExpr k with
+      | Some val => val
+      | None => Const ty Default
+      end.
 
-Definition struct_set_field
-  (ty: Kind -> Type)
-  (n : nat)
-  (get_kind : Fin.t n -> Kind)
-  (get_name : Fin.t n -> string)
-  (packet : Expr ty (SyntaxKind (Struct get_kind get_name)))
-  (name : string)
-  (kind : Kind)
-  (value : Expr ty (SyntaxKind kind))
-  :  option (Expr ty (SyntaxKind (Struct get_kind get_name))).
-Proof.
-  refine (let y := struct_get_field_index packet name in
-          match y with
-          | None => None
-          | Some i => _
-          end).
-  destruct (Kind_dec (get_kind i) kind).
-  - subst.
-    exact (Some (UpdateStruct packet i value)).
-  - exact None.
-Defined.
-
-Definition struct_set_field_default
-           (ty: Kind -> Type)
-           (n : nat)
-           (get_kind : Fin.t n -> Kind)
-           (get_name : Fin.t n -> string)
-           (packet : Expr ty (SyntaxKind (Struct get_kind get_name)))
-           (name : string)
-           (kind : Kind)
-           (value : Expr ty (SyntaxKind kind))
-  : Expr ty (SyntaxKind (Struct get_kind get_name)).
-Proof.
-  refine (let y := struct_get_field_index packet name in
-          match y with
-          | None => packet
-          | Some i => _
-          end).
-  destruct (Kind_dec (get_kind i) kind).
-  - subst.
-    exact (UpdateStruct packet i value).
-  - exact packet.
-Defined.
+    Definition structSetFieldKindMaybe k (v: Expr ty (SyntaxKind k)) : option (Expr ty (SyntaxKind (Struct ls))) :=
+      structGetFieldIndex ls
+        >>= fun i =>
+          let k' := snd (ls i) in
+          match Kind_decb k k' as b return Kind_decb k k' = b -> option (Expr ty (SyntaxKind (Struct ls))) with
+          | true =>
+              fun pf =>
+                Some (UpdateStruct expr i
+                        (eq_rect k (fun x => Expr ty (SyntaxKind x)) v k' (proj1 (Kind_decb_eq _ _) pf)))
+          | false => fun _ => None
+          end eq_refl.
+      
+    Definition structSetFieldKind k (v: Expr ty (SyntaxKind k)) : Expr ty (SyntaxKind (Struct ls)) :=
+      match structGetFieldIndex ls with
+      | None => expr
+      | Some i =>
+          let k' := snd (ls i) in
+          match Kind_decb k k' as b return Kind_decb k k' = b -> Expr ty (SyntaxKind (Struct ls)) with
+          | true =>
+              fun pf =>
+                UpdateStruct expr i
+                  (eq_rect k (fun x => Expr ty (SyntaxKind x)) v k' (proj1 (Kind_decb_eq _ _) pf))
+          | false => fun _ => expr
+          end eq_refl
+      end.
+  End SpecificStruct.
+End StructStringField.
 
 Create HintDb KamiDb.
 #[export] Hint Unfold 

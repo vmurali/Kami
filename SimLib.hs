@@ -51,21 +51,21 @@ readCheckpoint path mod = do
 
 -- getters and putters
 
-getRegVal :: KamiState -> String -> R.Any
+getRegVal :: KamiState -> String -> Any
 getRegVal (regs,_) regName = case M.lookup regName regs of
   Just v -> snd v
   Nothing -> error ("Register " ++ regName ++ " not found.")
 
-getRegFileVal :: KamiState -> String -> Int -> IO R.Any
+getRegFileVal :: KamiState -> String -> Int -> IO Any
 getRegFileVal (_,(Build_FileState methods int_regs files)) fileName i = do
   case M.lookup fileName (R.unsafeCoerce files) of
     Nothing -> error ("File " ++ fileName ++ " not found.")
     Just (R.Build_RegFile _ _ _ _ _ _ _ v) -> MV.read v i
 
-putRegVal :: KamiState -> String -> R.Any -> KamiState
+putRegVal :: KamiState -> String -> Any -> KamiState
 putRegVal (regs,state) regName v = (M.insert regName (undefined, v) regs,state)
 
-putRegFileVal :: KamiState -> String -> Int -> R.Any -> IO KamiState
+putRegFileVal :: KamiState -> String -> Int -> Any -> IO KamiState
 putRegFileVal ks@(regs,(Build_FileState methods int_regs files)) fileName i v =
   case M.lookup fileName (R.unsafeCoerce files) of
     Nothing -> error ("File " ++ fileName ++ " not found.")

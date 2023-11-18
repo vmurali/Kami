@@ -67,8 +67,8 @@ struct_field_access fieldName v =
 defVal :: Vec v => T.Kind -> Val v
 defVal T.Bool = BoolVal False
 defVal (T.Bit n) = BVVal $ BV.zeros n
-defVal (T.Struct n kinds names) =
-    StructVal $ map (\i -> (names i, defVal $ kinds i)) $ T.getFins n
+defVal (T.Struct n kindNames) =
+    StructVal $ map (\i -> (fst (kindNames i), defVal $ snd (kindNames i))) $ T.getFins n
 defVal (T.Array n k) =
     ArrayVal $ vector_of_list $ replicate n $ defVal k
 
@@ -83,9 +83,9 @@ randVal T.Bool = do
 randVal (T.Bit n) = do
     k <- randomRIO ((0 :: Integer), 2^n - 1)
     return $ BVVal $ BV.bitVec n k
-randVal (T.Struct n ks names) = do
-    let ks' = map ks (T.getFins n)
-    let names' = map names (T.getFins n)
+randVal (T.Struct n ks) = do
+    let ks' = map (\i -> snd (ks i)) (T.getFins n)
+    let names' = map (\i -> fst (ks i)) (T.getFins n)
     vs <- mapM randVal ks'
     return $ StructVal $ zip names' vs
 randVal (T.Array n k) = do

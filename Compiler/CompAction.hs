@@ -33,13 +33,13 @@ show_finfun n f = "{ " ++ intercalate " ; " (map (show . f) $ T.getFins n) ++ " 
 instance Show T.FullFormat where
   show (T.FBool n bf) = "FBool " ++ show n ++ " " ++ show bf
   show (T.FBit n m bf) = "FBit " ++ show n ++ " " ++ show m ++ " " ++ show bf
-  show (T.FStruct n fk fs ffs) = "FStruct " ++ show n ++ " " ++ show_finfun n fk ++ " " ++ show_finfun n fs ++ " " ++ show_finfun n ffs
+  show (T.FStruct n fk ffs) = "FStruct " ++ show n ++ " " ++ show_finfun n fk ++ " " ++ show_finfun n ffs
   show (T.FArray n k ff) = "FArray " ++ show n ++ " " ++ show k ++ " " ++ show ff
  
 instance Show T.ConstT where
   show (T.ConstBool b) = "ConstBool " ++ show b
   show (T.ConstBit n w) = "ConstBit " ++ show n ++ " " ++ show w
-  show (T.ConstStruct n fk fs fc) = "ConstStruct " ++ show n ++ " " ++ show_finfun n fk ++ " " ++ show_finfun n fs ++ " " ++ show_finfun n fc
+  show (T.ConstStruct n fk fc) = "ConstStruct " ++ show n ++ " " ++ show_finfun n fk ++ " " ++ show_finfun n fc
   show (T.ConstArray n k fc) = "ConstArray " ++ show n ++ " " ++ show k ++ " " ++ show_finfun n fc
 
 instance Show T.ConstFullT where
@@ -49,7 +49,7 @@ instance Show T.ConstFullT where
 instance Show T.Kind where
   show T.Bool = "Bool"
   show (T.Bit n) = "Bit " ++ show n
-  show (T.Struct n fk fs) = "Struct " ++ show n ++ " " ++ show_finfun n fk ++ " " ++ show_finfun n fs
+  show (T.Struct n fk) = "Struct " ++ show n ++ " " ++ show_finfun n fk
   show (T.Array n k) = "Array " ++ show n ++ " " ++ show k
 
 instance Show T.FullKind where
@@ -67,8 +67,8 @@ instance Show (T.Expr ty) where
   show (T.BinBitBool n m o e1 e2) = "BinBitBool " ++ show n ++ " " ++ show m ++ " " ++ show o ++ " " ++ show e1 ++ " " ++ show e2
   show (T.ITE fk e1 e2 e3) = "ITE " ++ show fk ++ " " ++ show e1 ++ " " ++ show e2 ++ " " ++ show e3
   show (T.Eq k e1 e2) = "Eq " ++ show k ++ " " ++ show e1 ++ " " ++ show e2
-  show (T.ReadStruct n fk fs e i) = "ReadStruct " ++ show n ++ " " ++ show_finfun n fk ++ " " ++ show_finfun n fs ++ " " ++ show e ++ " " ++ show i
-  show (T.BuildStruct n fk fs fe) = "BuildStruct " ++ show n ++ " " ++ show_finfun n fk ++ " " ++ show_finfun n fs ++ " " ++ show_finfun n fe
+  show (T.ReadStruct n fk e i) = "ReadStruct " ++ show n ++ " " ++ show_finfun n fk ++ " " ++ show e ++ " " ++ show i
+  show (T.BuildStruct n fk fe) = "BuildStruct " ++ show n ++ " " ++ show_finfun n fk ++ " " ++ show_finfun n fe
   show (T.ReadArray n m k e1 e2) = "ReadArray " ++ show n ++ " " ++ show m ++ " " ++ show e1 ++ " " ++ show e2
   show (T.ReadArrayConst n k e i) = "ReadArrayConst " ++ show n ++ " " ++ show k ++ " " ++ show e ++ " " ++ show i
   show (T.BuildArray n k f) = "BuildArray " ++ show n ++ " " ++ show k ++ " " ++ show_finfun n f
@@ -85,7 +85,7 @@ instance Eq T.ConstT where
   (==) (T.ConstBool x) (T.ConstBool y) = x == y
   (==) (T.ConstBit n x) (T.ConstBit m y) = and [n == m, x == y]
   (==) (T.ConstArray n k xs) (T.ConstArray m k' ys) = and ((n == m) : [x == y | x <- map xs $ T.getFins n, y <- map ys $ T.getFins n])
-  (==) (T.ConstStruct n fk fs xs) (T.ConstStruct m fk' fs' ys) = and ((n == m) : [x == y | x <- map xs $ T.getFins n, y <- map ys $ T.getFins n])
+  (==) (T.ConstStruct n _ xs) (T.ConstStruct m _ ys) = and ((n == m) : [x == y | x <- map xs $ T.getFins n, y <- map ys $ T.getFins n])
   (==) _ _ = False
 
 --access with helpful error msg
@@ -744,8 +744,8 @@ kind_of_expr (T.BinBit _ _ n3 _ _ _) = T.SyntaxKind $ T.Bit n3
 kind_of_expr (T.BinBitBool _ _ _ _ _) = T.SyntaxKind T.Bool
 kind_of_expr (T.ITE k _ _ _) = k
 kind_of_expr (T.Eq _ _ _) = T.SyntaxKind T.Bool
-kind_of_expr (T.ReadStruct _ fk _ _ i) = T.SyntaxKind $ fk i
-kind_of_expr (T.BuildStruct n fk fs _) = T.SyntaxKind $ T.Struct n fk fs
+kind_of_expr (T.ReadStruct _ fk _ i) = T.SyntaxKind $ snd (fk i)
+kind_of_expr (T.BuildStruct n fk _) = T.SyntaxKind $ T.Struct n fk
 kind_of_expr (T.ReadArray _ _ k _ _) = T.SyntaxKind k
 kind_of_expr (T.ReadArrayConst _ k _ _) = T.SyntaxKind k
 kind_of_expr (T.BuildArray n k _) = T.SyntaxKind $ T.Array n k

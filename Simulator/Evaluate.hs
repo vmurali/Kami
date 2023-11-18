@@ -20,7 +20,7 @@ import qualified Data.Array.MArray as M
 import qualified Data.BitVector as BV
 import qualified Data.Vector as V
 
-import GHC.Base (unsafeCoerce#)
+import GHC.Exts (unsafeCoerce#)
 
 unsafeCoerce :: a -> b
 unsafeCoerce = unsafeCoerce#
@@ -28,8 +28,8 @@ unsafeCoerce = unsafeCoerce#
 eval_ConstT :: Vec v => T.ConstT -> Val v
 eval_ConstT (T.ConstBool b) = BoolVal b
 eval_ConstT (T.ConstBit n v) = BVVal $ BV.bitVec n v
-eval_ConstT (T.ConstStruct n _ names fields) =
-        StructVal $ map (\i -> (names i, eval_ConstT $ fields i)) $ T.getFins n
+eval_ConstT (T.ConstStruct n kindNames fields) =
+        StructVal $ map (\i -> (fst (kindNames i), eval_ConstT $ fields i)) $ T.getFins n
 eval_ConstT (T.ConstArray n k vals) =
         ArrayVal $ vector_of_list $ map (eval_ConstT . vals) $ T.getFins n
 
@@ -76,11 +76,11 @@ eval_Expr (T.BinBitBool _ _ _ e1 e2) = BoolVal $ (BV.<.) (bvCoerce $ eval_Expr @
 eval_Expr (T.Kor k es) = foldr bitwise_or (defVal k) (map eval_Expr es)
 eval_Expr (T.ITE _ e1 e2 e3) = if boolCoerce (eval_Expr @v e1) then eval_Expr e2 else eval_Expr e3
 eval_Expr (T.Eq _ e1 e2) = BoolVal $ eval_Expr @v e1 .== eval_Expr e2
-eval_Expr (T.ReadStruct _ _ names e i) = case lookup (names i) (structCoerce $ eval_Expr e) of
+eval_Expr (T.ReadStruct _ kindNames e i) = case lookup (fst (kindNames i)) (structCoerce $ eval_Expr e) of
     Just v' -> v'
-    Nothing -> error ("Field " ++ names i ++ " not found.")
-eval_Expr (T.BuildStruct n _ names exprs) = 
-    StructVal $ map (\i -> (names i, eval_Expr $ exprs i)) (T.getFins n)
+    Nothing -> error ("Field " ++ fst (kindNames i) ++ " not found.")
+eval_Expr (T.BuildStruct n kindNames exprs) = 
+    StructVal $ map (\i -> (fst (kindNames i), eval_Expr $ exprs i)) (T.getFins n)
 eval_Expr (T.ReadArray n m k a v) =
     let i = fromIntegral $ BV.nat $ bvCoerce $ (eval_Expr @v v) in
     if i < n then vector_index i (arrayCoerce $ eval_Expr a) else defVal k

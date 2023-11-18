@@ -6485,11 +6485,11 @@ End Simulation_new.
 Lemma evalExpr_Kor_Default k (e : Expr type (SyntaxKind k)):
   evalKorOpBin k (evalExpr e) (evalConstT (getDefaultConst k)) = (evalExpr e).
 Proof.
-  induction k; simpl.
+  induction k using Kind_custom_ind; simpl.
   - rewrite orb_false_r; reflexivity.
   - rewrite wzero_wor; reflexivity.
   - apply functional_extensionality_dep; intros.
-    apply (H x (Var _ (SyntaxKind (k x)) (evalExpr e x))).
+    apply (H x (Var _ (SyntaxKind (snd (p x))) (evalExpr e x))).
   - simpl.
     apply functional_extensionality_dep; intros.
     apply (IHk (Var _ (SyntaxKind k) (evalExpr e x))).
@@ -6498,12 +6498,12 @@ Qed.
 Lemma evalExpr_Kor_comm k (e1 e2 : Expr type (SyntaxKind k)):
   evalKorOpBin k (evalExpr e1) (evalExpr e2) = evalKorOpBin k (evalExpr e2) (evalExpr e1).
 Proof.
-  induction k; simpl.
+  induction k using Kind_custom_ind; simpl.
   - apply orb_comm.
   - apply wor_comm.
   - apply functional_extensionality_dep; intros.
-    apply (H x (Var _ (SyntaxKind (k x)) (evalExpr e1 x))
-             (Var _ (SyntaxKind (k x)) (evalExpr e2 x))).
+    apply (H x (Var _ (SyntaxKind (snd (p x))) (evalExpr e1 x))
+             (Var _ (SyntaxKind (snd (p x))) (evalExpr e2 x))).
   - apply functional_extensionality_dep; intros.
     apply (IHk (Var _ (SyntaxKind k) (evalExpr e1 x))
                (Var _ (SyntaxKind k) (evalExpr e2 x))).
@@ -6512,11 +6512,11 @@ Qed.
 Lemma evalExpr_Kor_idemp k (e1 : Expr type (SyntaxKind k)):
   evalKorOpBin k (evalExpr e1) (evalExpr e1) = (evalExpr e1).
 Proof.
-  induction k; simpl.
+  induction k using Kind_custom_ind; simpl.
   - apply orb_diag.
   - apply wor_idemp.
   - apply functional_extensionality_dep; intros.
-    apply (H x (Var _ (SyntaxKind (k x)) (evalExpr e1 x))).
+    apply (H x (Var _ (SyntaxKind (snd (p x))) (evalExpr e1 x))).
   - apply functional_extensionality_dep; intros.
     apply (IHk (Var _ (SyntaxKind k) (evalExpr e1 x))).
 Qed.
@@ -6647,13 +6647,13 @@ Lemma evalExpr_Kor_assoc k (e1 e2 e3 : Expr type (SyntaxKind k)):
   evalKorOpBin k (evalExpr e1) (evalKorOpBin k (evalExpr e2) (evalExpr e3)) =
   evalKorOpBin k (evalKorOpBin k (evalExpr e1) (evalExpr e2)) (evalExpr e3).
 Proof.
-  induction k; simpl.
+  induction k using Kind_custom_ind; simpl.
   - apply orb_assoc.
   - apply wor_assoc.
   - apply functional_extensionality_dep; intros.
-    apply (H _ (Var _ (SyntaxKind (k x)) (evalExpr e1 x))
-             (Var _ (SyntaxKind (k x)) (evalExpr e2 x))
-             (Var _ (SyntaxKind (k x)) (evalExpr e3 x))).
+    apply (H _ (Var _ (SyntaxKind (snd (p x))) (evalExpr e1 x))
+             (Var _ (SyntaxKind (snd (p x))) (evalExpr e2 x))
+             (Var _ (SyntaxKind (snd (p x))) (evalExpr e3 x))).
   - apply functional_extensionality_dep; intros.
     apply (IHk (Var _ (SyntaxKind k) (evalExpr e1 x))
              (Var _ (SyntaxKind k) (evalExpr e2 x))

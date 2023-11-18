@@ -21,11 +21,11 @@ Section ty.
       | BinBitBool n1 n2 op e1 e2 => (@goodDfExpr _ e1) && (@goodDfExpr _ e2)
       | ITE k p e1 e2 => (@goodDfExpr _ p) && (@goodDfExpr _ e1) && (@goodDfExpr _ e2)
       | Eq k e1 e2 => (@goodDfExpr _ e1) && (@goodDfExpr _ e2)
-      | ReadStruct n m k e i => (@goodDfExpr _ e)
+      | ReadStruct n sk e i => (@goodDfExpr _ e)
       | ReadArray n m k e i => (@goodDfExpr _ e) && (@goodDfExpr _ i)
       | ReadArrayConst n k e i => (@goodDfExpr _ e)
       | BuildArray n k fv => forallb (fun i => @goodDfExpr _ (fv i)) (getFins n)
-      | BuildStruct n fk fs fv => forallb (fun i => @goodDfExpr _ (fv i)) (getFins n)
+      | BuildStruct n fsk fv => forallb (fun i => @goodDfExpr _ (fv i)) (getFins n)
       | Kor k es => forallb(@goodDfExpr _ ) es
       | ToNative _ e => goodDfExpr _ e
       | FromNative _ e => goodDfExpr _ e

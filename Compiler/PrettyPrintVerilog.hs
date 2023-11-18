@@ -38,7 +38,7 @@ ppTypeVec k i = (k, i : [])
 ppTypeName :: T.Kind -> String
 ppTypeName k =
   case ppTypeVec k 0 of
-    (T.Struct _ _ _, _) -> "struct packed"
+    (T.Struct _ _, _) -> "struct packed"
     (_, _) -> "logic"
 
 ppDeclType :: String -> T.Kind -> String
@@ -54,10 +54,10 @@ ppType (T.Bit i) = "[" ++ show (i-1) ++ ":0]"
 ppType v@(T.Array i k) =
   let (k', is) = ppTypeVec k i
   in case k' of
-       T.Struct _ _ _ -> ppType k' ++ concatMap ppVecLen is
+       T.Struct _ _ -> ppType k' ++ concatMap ppVecLen is
        _ -> concatMap ppVecLen is ++ ppType k'
-ppType (T.Struct n fk fs) =
-  "{" ++ concatMap (\i -> ppDealSize0 (fk i) "" (' ' : ppDeclType (ppName $ fs i) (fk i) ++ ";")) (T.getFins n) ++ "}"
+ppType (T.Struct n fk) =
+  "{" ++ concatMap (\i -> ppDealSize0 (snd (fk i)) "" (' ' : ppDeclType (ppName $ fst (fk i)) (snd (fk i)) ++ ";")) (T.getFins n) ++ "}"
 
 ppPrintVar :: (String, Maybe Int) -> String
 ppPrintVar (s, Just v) = ppName $ s ++ {- if v /= 0 then '#' : show v else [] -} '#' : show v
@@ -74,7 +74,7 @@ ppConst :: T.ConstT -> String
 ppConst (T.ConstBool b) = if b then "1'b1" else "1'b0"
 ppConst (T.ConstBit sz w) = show sz ++ "\'b" ++ ppWord sz w
 ppConst (T.ConstArray n k fv) = '{' : intercalate ", " (Data.List.map ppConst (Data.List.map fv (reverse $ T.getFins n))) ++ "}"
-ppConst (T.ConstStruct n fk fs fv) = '{' : intercalate ", " (snd (unzip (Data.List.filter (\(k,e) -> T.size k /= 0) (zip (Data.List.map fk (T.getFins n)) (Data.List.map ppConst (Data.List.map fv (T.getFins n))))))) ++ "}"
+ppConst (T.ConstStruct n fk fv) = '{' : intercalate ", " (snd (unzip (Data.List.filter (\(k,e) -> T.size k /= 0) (zip (Data.List.map (\i -> snd (fk i)) (T.getFins n)) (Data.List.map ppConst (Data.List.map fv (T.getFins n))))))) ++ "}"
 
 ppBitFormat :: T.BitFormat -> String
 ppBitFormat T.Binary = "b"
@@ -84,13 +84,13 @@ ppBitFormat T.Hex = "x"
 ppFullFormat :: T.FullFormat -> String
 ppFullFormat (T.FBool sz bf) = "%" ++ show sz ++ ppBitFormat bf
 ppFullFormat (T.FBit n sz bf) = "%" ++ show sz ++ ppBitFormat bf
-ppFullFormat (T.FStruct n fk fs ff) = "{ " ++ concatMap (\i -> fs i ++ ":" ++ ppFullFormat (ff i) ++ "; ") (T.getFins n) ++ "}"
+ppFullFormat (T.FStruct n fk ff) = "{ " ++ concatMap (\i -> fst (fk i) ++ ":" ++ ppFullFormat (ff i) ++ "; ") (T.getFins n) ++ "}"
 ppFullFormat (T.FArray n k f) = "[ " ++ concatMap (\i -> show i ++ "=" ++ ppFullFormat f ++ "; ") [0 .. (n-1)] ++ "]"
 
 ppExprList :: T.Kind -> T.RtlExpr -> [T.RtlExpr]
 ppExprList T.Bool e = [e]
 ppExprList (T.Bit n) e = [e]
-ppExprList (T.Struct n fk fs) e = concatMap (\i -> ppExprList (fk i) (T.ReadStruct n fk fs e i)) (T.getFins n)
+ppExprList (T.Struct n fk) e = concatMap (\i -> ppExprList (snd (fk i)) (T.ReadStruct n fk e i)) (T.getFins n)
 ppExprList (T.Array n k) e = concatMap (\i -> ppExprList k (T.ReadArrayConst n k e i)) (T.getFins n)
 
 ppRtlSys :: T.SysT T.Coq_rtl_ty -> State (H.Map String (Int, T.Kind)) String
@@ -181,14 +181,14 @@ ppRtlExpr who e =
     T.BinBitBool _ _ (_) e1 e2 -> binExpr e1 "<" e2
     T.ITE _ p e1 e2 -> triExpr p "?" e1 ":" e2
     T.Eq _ e1 e2 -> binExpr e1 "==" e2
-    T.ReadStruct num fk fs e i ->
+    T.ReadStruct num fk e i ->
       do
-        new <- optionAddToTrunc who (T.Struct num fk fs) e
-        return $ ppDealSize0 (fk i) "0" (new ++ '.' : ppName (fs i))
-    T.BuildStruct num fk fs es ->
+        new <- optionAddToTrunc who (T.Struct num fk) e
+        return $ ppDealSize0 (snd (fk i)) "0" (new ++ '.' : ppName (fst (fk i)))
+    T.BuildStruct num fk es ->
       do
-        strs <- mapM (ppRtlExpr who) (filterKind0 num fk es)  -- (Data.List.map es (getFins num))
-        return $ ppDealSize0 (T.Struct num fk fs) "0" ('{': intercalate ", " strs ++ "}")
+        strs <- mapM (ppRtlExpr who) (filterKind0 num (\i -> snd (fk i)) es)  -- (Data.List.map es (getFins num))
+        return $ ppDealSize0 (T.Struct num fk) "0" ('{': intercalate ", " strs ++ "}")
     T.ReadArray n m k vec idx ->
       do
         xidx <- ppRtlExpr who idx

@@ -162,6 +162,7 @@ Proof.
                                | exact (error "Kind mismatch.")
                                | exact (error "Kind mismatch.")
                                | idtac ]. (* n should be 3 *)
+      pose (fun i => snd (p0 i)) as k0.
       exact (let addr := Tup_lookup F1 k0 v in
              let data_k := Tup_lookup (FS F1) k0 v in
              let mask := Tup_lookup (FS (FS F1)) k0 v in
@@ -178,6 +179,7 @@ Proof.
     + destruct n as [|[|]]; [ exact (error "Kind mismatch.")
                             | exact (error "Kind mismatch.")
                             | idtac ]. (* n should be 2 *)
+      pose (fun i => snd (p0 i)) as k0.
       exact (let addr := Tup_lookup F1 k0 v in
              let data_k := Tup_lookup (FS F1) k0 v in
              do addr' <- coerce addr (Bit (Nat.log2_up (size file)));

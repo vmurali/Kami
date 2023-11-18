@@ -57,7 +57,7 @@ Defined.
 
 Lemma Kind_decb_eq2 : forall k1 k2, Kind_decb k1 k2 = true <-> k1 = k2.
 Proof.
-  induction k1; intros; destruct k2; split; intro; try (reflexivity || discriminate).
+  induction k1 using Kind_custom_ind; intros; destruct k2; split; intro; try (reflexivity || discriminate).
   - simpl in H; apply Nat_eqb_eq2 in H; congruence.
   - inversion H; simpl; apply Nat_eqb_refl2.
   - destruct (n =? n0)%nat eqn:G.
@@ -66,19 +66,23 @@ Proof.
       pose proof G.
       apply Nat_eqb_eq2 in H1.
       destruct H1.
-      f_equal; extensionality i.
-      apply H.
+      f_equal.
+      extensionality i.
+      specialize (H i (snd (p0 i))).
+      apply proj1 in H.
       apply andb_true_iff in H0; destruct H0.
       pose (proj1 (Fin_forallb_correct _) H0).
       rewrite (hedberg Nat.eq_dec _ eq_refl) in e.
-      simpl in e.
-      apply e.
-      apply String_eqb_eq2.
-      apply andb_true_iff in H0; destruct H0.
       pose (proj1 (Fin_forallb_correct _) H1).
-      rewrite (hedberg Nat.eq_dec _ eq_refl) in e.
-      simpl in e.
-      apply e.
+      rewrite (hedberg Nat.eq_dec _ eq_refl) in e0.
+      specialize (e i).
+      specialize (e0 i).
+      simpl in e, e0.
+      destruct (p i), (p0 i).
+      simpl in *.
+      specialize (H e).
+      apply String_eqb_eq2 in e0.
+      repeat f_equal; assumption.
     + simpl in H0.
       rewrite (@silly_lemma_false) in H0 by auto; discriminate.
   - rewrite H0; apply Kind_decb_refl.

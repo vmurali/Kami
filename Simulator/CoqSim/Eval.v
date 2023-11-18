@@ -15,7 +15,7 @@ Fixpoint eval_Kind(k : Kind) : Type :=
   match k with
   | Bool => bool
   | Bit n => BV n
-  | Struct n ks fs => Tuple (fun i => eval_Kind (ks i))
+  | Struct n fsk => Tuple (fun i => eval_Kind (snd (fsk i)))
   | Array n k' => Vector n (eval_Kind k')
   end.
 
@@ -23,7 +23,7 @@ Fixpoint eval_KindToType {k : Kind} : eval_Kind k -> type k :=
   match k return (eval_Kind k -> type k) with
   | Bool => (fun x => x)
   | Bit n => (fun x => (natToWord n (bv_to_nat x)))
-  | Struct n km sm => (fun x i => eval_KindToType (tup_index i (fun j => eval_Kind (km j)) x))
+  | Struct n skm => (fun x i => eval_KindToType (tup_index i (fun j => eval_Kind (snd (skm j))) x))
   | Array n k' => (fun x i => eval_KindToType (vector_index i x))
   end.
 
@@ -31,8 +31,8 @@ Fixpoint eval_KindFromType {k : Kind} : type k -> eval_Kind k :=
   match k return (type k -> eval_Kind k) with
   | Bool => (fun x => x)
   | Bit n => (fun x => nat_to_bv (wordToNat x))
-  | Struct n km sm => (fun x => mkTup (fun i => eval_Kind (km i))
-                                      (fun j => eval_KindFromType (x j)))
+  | Struct n skm => (fun x => mkTup (fun i => eval_Kind (snd (skm i)))
+                                (fun j => eval_KindFromType (x j)))
   | Array n k' => (fun x => make_vector (fun i => eval_KindFromType (x i)))
   end.
 
@@ -47,7 +47,7 @@ Fixpoint print_Val(k : Kind)(ff : FullFormat k) : eval_Kind k -> string :=
   match ff with
   | FBool n _ => fun x => pad_with " " n (if x then "1" else "0")
   | FBit n m bf => fun x => pad_with "0" m (print_BF bf x)
-  | FStruct n fk fs ffs => fun x => ("{ " ++ String.concat "; " (v_to_list (vmap (fun '(str1,str2) => str1 ++ ":" ++ str2) (add_strings fs (tup_to_vec _ (fun i => print_Val (ffs i)) x)))) ++ "; }")%string
+  | FStruct n fsk ffs => fun x => ("{ " ++ String.concat "; " (v_to_list (vmap (fun '(str1,str2) => str1 ++ ":" ++ str2) (add_strings (fun i => fst (fsk i)) (tup_to_vec _ (fun i => print_Val (ffs i)) x)))) ++ "; }")%string
   | FArray n k' ff' => fun x => ("[" ++ String.concat "; " (List.map (fun i => natToDecStr (f2n i) ++ "=" ++ print_Val ff' (vector_index i x)) (getFins n)) ++ "; ]")%string
   end.
 
@@ -56,7 +56,7 @@ Fixpoint print_Val2(k : Kind)(ff : FullFormat k) : eval_Kind k -> string :=
   match ff with
   | FBool n _ => fun x => pad_with " " n (if x then "tt" else "ff")
   | FBit n m bf => fun x => pad_with "0" m (print_BF bf x)
-  | FStruct n fk fs ffs => fun x => (("{ " ++ String.concat " ; " (v_to_list ((tup_to_vec _ (fun i => print_Val2 (ffs i)) x)))) ++ " }")%string
+  | FStruct n fsk ffs => fun x => (("{ " ++ String.concat " ; " (v_to_list ((tup_to_vec _ (fun i => print_Val2 (ffs i)) x)))) ++ " }")%string
   | FArray n k' ff' => fun x => ("[ " ++ String.concat " ; " (List.map (fun i => print_Val2 ff' (vector_index i x)) (getFins n)) ++ " ]")%string
   end.
 
@@ -64,7 +64,7 @@ Fixpoint Kind_eq{k} : eval_Kind k -> eval_Kind k -> bool :=
   match k return eval_Kind k -> eval_Kind k -> bool with
   | Bool => Bool.eqb
   | Bit n => bv_eq
-  | Struct n ks fs => TupEq (fun i => eval_Kind (ks i)) (fun i => @Kind_eq (ks i))
+  | Struct n fsk => TupEq (fun i => eval_Kind (snd (fsk i))) (fun i => @Kind_eq (snd (fsk i)))
   | Array n k' => vector_eq (@Kind_eq k')
   end.
 
@@ -78,7 +78,7 @@ Fixpoint default_val(k : Kind) : eval_Kind k :=
   match k return eval_Kind k with
   | Bool => false
   | Bit n => nat_to_bv 0
-  | Struct n ks fs => mkTup (fun i => eval_Kind (ks i)) (fun i => default_val (ks i))
+  | Struct n fsk => mkTup (fun i => eval_Kind (snd (fsk i))) (fun i => default_val (snd (fsk i)))
   | Array n k' => make_vector (fun _ => default_val k')
   end.
 
@@ -102,7 +102,7 @@ Fixpoint rand_val(k : Kind) : IO (eval_Kind k) :=
   match k return IO (eval_Kind k) with
   | Bool => rand_bool
   | Bit n => rand_bv n
-  | Struct n ks fs => rand_tuple (fun i => eval_Kind (ks i)) (fun i => rand_val (ks i))
+  | Struct n fsk => rand_tuple (fun i => eval_Kind (snd (fsk i))) (fun i => rand_val (snd (fsk i)))
   | Array n k' => rand_vector (rand_val k')
   end.
 
@@ -161,7 +161,7 @@ Fixpoint eval_ConstT{k}(e : ConstT k) : eval_Kind k :=
   match e with
   | ConstBool b => b
   | ConstBit n w => nat_to_bv (wordToNat w)
-  | ConstStruct n ks ss es => mkTup (fun i => eval_Kind (ks i)) (fun i => eval_ConstT (es i))
+  | ConstStruct n fsk es => mkTup (fun i => eval_Kind (snd (fsk i))) (fun i => eval_ConstT (es i))
   | ConstArray n k' es => make_vector (fun i => eval_ConstT (es i))
   end.
 
@@ -177,8 +177,8 @@ Fixpoint val_or (k : Kind) : eval_Kind k -> eval_Kind k -> eval_Kind k :=
   | Bit n => fun b1 b2 => bv_bor [b1 ; b2]
   | Array n k' => fun a1 a2 => make_vector (fun i => val_or k' (vector_index i a1)
                                                             (vector_index i a2))
-  | Struct n ks _ => fun t1 t2 => mkTup _ (fun i => val_or (ks i) (tup_index i _ t1)
-                                                         (tup_index i _ t2))
+  | Struct n ks => fun t1 t2 => mkTup _ (fun i => val_or (snd (ks i)) (tup_index i _ t1)
+                                                    (tup_index i _ t2))
   end.
 
 Fixpoint eval_Expr{k}(e : Expr eval_Kind k) : eval_FK k :=
@@ -193,8 +193,8 @@ Fixpoint eval_Expr{k}(e : Expr eval_Kind k) : eval_FK k :=
   | BinBitBool m n op e1 e2 => eval_BinBitBool op (eval_Expr e1) (eval_Expr e2)
   | ITE _ p e1 e2 => eval_Expr (if eval_Expr p then e1 else e2)
   | Eq _ e1 e2 => Kind_eq (eval_Expr e1) (eval_Expr e2)
-  | ReadStruct n ks ss e i => tup_index i _ (eval_Expr e)
-  | BuildStruct n ks ss es => mkTup _ (fun i => eval_Expr (es i))
+  | ReadStruct n ks e i => tup_index i _ (eval_Expr e)
+  | BuildStruct n ks es => mkTup _ (fun i => eval_Expr (es i))
   | ReadArray n m k v i => match lt_dec (bv_to_nat (eval_Expr i)) n with
                            | left pf => vector_index (Fin.of_nat_lt pf) (eval_Expr v)
                            | right _ => eval_ConstT (getDefaultConst k)
@@ -227,7 +227,7 @@ Fixpoint val_unpack(k : Kind) : BV (size k) -> eval_Kind k :=
   match k return BV (size k) -> eval_Kind k with
   | Bool => fun e => bv_eq e (nat_to_bv 1)
   | Bit n => fun e => e
-  | Struct n ks fs => fun e => Tup_map _ _ (fun i => val_unpack (ks i)) (mkTup (fun i => BV (size (ks i))) (get_chunk_struct (fun i => size (ks i)) e))
+  | Struct n ks => fun e => Tup_map _ _ (fun i => val_unpack (snd (ks i))) (mkTup (fun i => BV (size (snd (ks i)))) (get_chunk_struct (fun i => size (snd (ks i))) e))
   | Array n k => fun e => vector_map (val_unpack k) (make_vector (get_chunk_array _ e))
   end.
 

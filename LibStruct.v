@@ -66,52 +66,50 @@ Definition mkPair ty A B (a: A @# ty) (b: B @# ty) : Pair A B @# ty :=
 Definition Invalid {ty: Kind -> Type} {k} := STRUCT { "valid" ::= $$ false ; "data" ::= $$ (getDefaultConst k) }.
 
 Definition nullStruct: Kind :=
-  (Struct (fun i => @Fin.case0 _ i) (fun i => @Fin.case0 _ i)).
+  (Struct (fun i => @Fin.case0 _ i)).
 
 Fixpoint BuildStructActionCont
          (ty: Kind -> Type) k
          n:
-  forall (kinds : Fin.t n -> Kind)
-                        (names : Fin.t n -> string)
-                        (acts  : forall i, ActionT ty (kinds i))
-                        (cont: (forall i, Expr ty (SyntaxKind (kinds i))) -> ActionT ty k),
+  forall (nameKinds : Fin.t n -> string * Kind)
+         (acts  : forall i, ActionT ty (snd (nameKinds i)))
+         (cont: (forall i, Expr ty (SyntaxKind (snd (nameKinds i)))) -> ActionT ty k),
     ActionT ty k :=
-  match n return forall (kinds : Fin.t n -> Kind)
-                        (names : Fin.t n -> string)
-                        (acts  : forall i, ActionT ty (kinds i))
-                        (cont  : (forall i, Expr ty (SyntaxKind (kinds i))) ->
+  match n return forall (nameKinds : Fin.t n -> string * Kind)
+                        (acts  : forall i, ActionT ty (snd (nameKinds i)))
+                        (cont  : (forall i, Expr ty (SyntaxKind (snd (nameKinds i)))) ->
                                  ActionT ty k), ActionT ty k with
-  | 0 => fun kinds names acts cont =>
-           cont (fun i => @Fin.case0 (fun _ => Expr ty (SyntaxKind (kinds i))) i)
-  | S m => fun kinds names acts cont =>
+  | 0 => fun nameKinds acts cont =>
+           cont (fun i => @Fin.case0 (fun _ => Expr ty (SyntaxKind (snd (nameKinds i)))) i)
+  | S m => fun nameKinds acts cont =>
              LETA next <- acts Fin.F1;
                @BuildStructActionCont
-                 ty k m (fun i => kinds (Fin.FS i))
-                 (fun i => names (Fin.FS i))
+                 ty k m (fun i => nameKinds (Fin.FS i))
                  (fun i => acts (Fin.FS i))
                  (fun exps =>
                     cont (fun i =>
                             match i in Fin.t (S m) return
                                   forall (ks:
-                                            Fin.t (S m) -> Kind),
-                                    ty (ks Fin.F1) ->
-                                    (forall i: Fin.t m, Expr ty (SyntaxKind (ks (Fin.FS i)))) ->
-                                    Expr ty (SyntaxKind (ks i))
+                                            Fin.t (S m) -> string * Kind),
+                                    ty (snd (ks Fin.F1)) ->
+                                    (forall i: Fin.t m, Expr ty (SyntaxKind (snd (ks (Fin.FS i))))) ->
+                                    Expr ty (SyntaxKind (snd (ks i)))
                             with
                             | Fin.F1 _ => fun ks next exps => #next
                             | Fin.FS _ j => fun ks next exps => exps j
-                            end kinds next exps))
+                            end nameKinds next exps))
 end.
 
-Definition BuildStructAction ty n (kinds: Fin.t n -> Kind) (names: Fin.t n -> string) (acts: forall i, ActionT ty (kinds i)) :=
-  BuildStructActionCont kinds names acts (fun x => Return (BuildStruct kinds names x)).
+Definition BuildStructAction ty n (nameKinds: Fin.t n -> (string * Kind))
+  (acts: forall i, ActionT ty (snd (nameKinds i))) :=
+  BuildStructActionCont nameKinds acts (fun x => Return (BuildStruct nameKinds x)).
 
 Lemma WfConcatActionT_BuildStructActionCont:
- forall m k n kinds names acts cont,
+ forall m k n nameKinds acts cont,
    (forall (i:Fin.t n), WfConcatActionT (acts i) m) ->
    (forall x, WfConcatActionT (cont x) m) ->
    @WfConcatActionT type k (@BuildStructActionCont type k
-                                              n kinds names acts cont) m.
+                                              n nameKinds acts cont) m.
 Proof.
   induction n; simpl; intros; auto.
   econstructor; [|intros; eapply IHn]; eauto.

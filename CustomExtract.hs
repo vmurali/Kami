@@ -79,9 +79,9 @@ val_unpack (H.Bit _) v = return $ BVVal v
 val_unpack (H.Array n k) v = do
     vs <- mapM (val_unpack k) $ BV.split n v
     liftM ArrayVal $ M.newListArray (0,n-1) vs
-val_unpack (H.Struct n kinds names) v =
-    let names' = map names $ H.getFins n in
-    let kinds' = map kinds $ H.getFins n in
+val_unpack (H.Struct n kindNames) v =
+    let names' = map (\i -> fst (kindNames i)) $ H.getFins n in
+    let kinds' = map (\i -> snd (kindNames i)) $ H.getFins n in
     let bvs = partition (map H.size kinds') v in do
         ps <- pair_sequence $ zip names' (zipWith val_unpack kinds' bvs)
         return $ StructVal ps

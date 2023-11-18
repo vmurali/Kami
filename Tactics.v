@@ -1,30 +1,5 @@
 Require Import Kami.Lib.EclecticLib Kami.Syntax Kami.Properties.
 
-Ltac struct_get_field_ltac packet name :=
-  let val := eval cbv in (struct_get_field_index packet name) in
-      match val with
-      | Some ?x => exact (ReadStruct packet x)
-      | None =>
-        let newstr := constr:(("get field not found in struct" ++ name)%string) in
-        fail 0 newstr
-      | _ =>
-        let newstr := constr:(("major error - struct_get_field_index not reducing " ++ name)%string) in
-        fail 0 newstr
-      end.
-
-Ltac struct_set_field_ltac packet name newval :=
-  let val := eval cbv in (struct_get_field_index packet name) in
-      match val with
-      | Some ?x => exact (UpdateStruct packet x newval)
-      | None =>
-        let newstr := constr:(("set field not found in struct " ++ name)%string) in
-        fail 0 newstr
-      | _ =>
-        let newstr := constr:(("major error - struct_set_field_index not reducing " ++ name)%string) in
-        fail 0 newstr
-      end.
-
-
 Local Ltac constructor_simpl :=
   econstructor; eauto; simpl; unfold not; intros.
 

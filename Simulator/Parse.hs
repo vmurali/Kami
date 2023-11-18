@@ -48,9 +48,9 @@ val_unpack H.Bool v = BoolVal $ v BV.@. 0
 val_unpack (H.Bit _) v = BVVal v
 val_unpack (H.Array n k) v =
     ArrayVal $ vector_of_list $ map (val_unpack k) $ BV.split n v
-val_unpack (H.Struct n kinds names) v =
-    let names' = map names $ H.getFins n in
-    let kinds' = map kinds $ H.getFins n in
+val_unpack (H.Struct n kindNames) v =
+    let names' = map (\i -> fst (kindNames i)) $ H.getFins n in
+    let kinds' = map (\i -> snd (kindNames i)) $ H.getFins n in
     let bvs = partition (map H.size kinds') v in
     StructVal $ zip names' $ zipWith val_unpack kinds' bvs
 

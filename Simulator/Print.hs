@@ -24,8 +24,8 @@ instance Show T.Kind where
     show T.Bool = "Bool"
     show (T.Bit n) = "(Bit " ++ show n ++ ")"
     show (T.Array n k) = "(Array " ++ show n ++ " " ++ show k ++ ")"
-    show (T.Struct n fk fs) = "(Struct " ++ "{" ++ (concat $ intersperse "; " $ 
-        map (\i-> fs i ++ ":" ++ show (fk i)) (T.getFins n)) ++ "})"
+    show (T.Struct n fk) = "(Struct " ++ "{" ++ (concat $ intersperse "; " $ 
+        map (\i-> fst (fk i) ++ ":" ++ show (snd (fk i))) (T.getFins n)) ++ "})"
 
 deriving instance Show T.BitFormat
 
@@ -33,8 +33,8 @@ instance Show T.FullFormat where
     show (T.FBool _ _) = "Bool"
     show (T.FBit n _ _) = "(Bit " ++ show n ++ ")"
     show (T.FArray n k _) = "(Array " ++ show n ++ " " ++ show k ++ ")"
-    show (T.FStruct n fk fs _) = "(Struct " ++ "{ " ++ (concat $ intersperse "; " $ 
-        map (\i-> fs i ++ ":" ++ show (fk i)) (T.getFins n)) ++ "})"
+    show (T.FStruct n fk _) = "(Struct " ++ "{ " ++ (concat $ intersperse "; " $ 
+        map (\i-> fst (fk i) ++ ":" ++ show (snd (fk i))) (T.getFins n)) ++ "})"
 
 printNum :: T.BitFormat -> BV.BitVector -> String
 printNum T.Binary v = resize_num (BV.size v) $ tail $ tail $ BV.showBin v
@@ -44,7 +44,7 @@ printNum T.Hex v = resize_num (BV.size v `cdiv` 4) $ tail $ tail $ BV.showHex v
 printVal :: Vec v => T.FullFormat -> Val v -> String
 printVal (T.FBool n bf) (BoolVal b) = space_pad n (if b then "1" else "0")
 printVal (T.FBit n m bf) (BVVal bs) = zero_pad m $ printNum bf bs
-printVal (T.FStruct n _ names ffs) (StructVal fields) =
+printVal (T.FStruct n kindNames ffs) (StructVal fields) =
     let ps = zipWith (\(name,val) ff -> (name, printVal ff val)) fields (map ffs $ T.getFins n) in
     "{ " ++ concatMap (\(name,pval) -> name ++ ":" ++ pval ++ "; ") ps ++ "}"
 printVal (T.FArray n k ff) (ArrayVal vals) =
