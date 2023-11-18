@@ -162,8 +162,11 @@ all_regs_of_modinput ((_,(rfbs,basemod)),cas) = let (asyncs,isAddrs,notIsAddrs) 
   ++ all_not_isAddr_shadows notIsAddrs
   
 en_arg_initialize :: String -> T.Kind -> [(T.VarType, T.RtlExpr')]
+en_arg_initialize f k = []
+{-
 en_arg_initialize f k = [((f ++ "#_enable",Just 0), T.Const T.Bool $ T.ConstBool False),
                    ((f ++ "#_argument",Just 0), T.Const k $ T.getDefaultConst k)]
+-}
 
 get_calls_from_basemod :: T.BaseModule -> [T.RegFileBase] -> [String]
 get_calls_from_basemod basemod rfbs = map fst (get_normal_meth_calls_with_sign basemod rfbs)
@@ -517,7 +520,8 @@ meth_count f = do
   s <- get
   let n = meth_counters s !!! f
   put $ s { meth_counters = H.insert f (n+1) $ meth_counters s }
-  return (n+1)
+  -- return (n+1)
+  return n
 
 reg_count :: String -> State ExprState Int
 reg_count r = do
@@ -683,7 +687,7 @@ en_arg_helper f (pred, call) =
 
 en_arg_final :: String -> T.Kind -> H.Map String Int -> [(T.VarType, T.RtlExpr')]
 en_arg_final f argk counters =
-  en_arg_helper f (createPredCall f argk (getPredCallList f argk (counters !!! f)))
+  en_arg_helper f (createPredCall f argk (getPredCallList f argk ((counters !!! f) - 1)))
 
 get_final_meth_assigns :: T.BaseModule -> [T.RegFileBase] -> ExprState -> [(T.VarType, T.RtlExpr')]
 get_final_meth_assigns basemod rfbs s =

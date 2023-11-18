@@ -81,14 +81,22 @@ Extract Inlined Constant N.of_nat => "Prelude.toInteger".
 Section Ty.
   Variable ty: Kind -> Type.
   Local Open Scope kami_expr.
+  Definition predPackOr k (ls: list ((Bool @# ty) * (k @# ty))) :=
+    match ls with
+    | nil => (Const ty false, Const ty Default)
+    | (p, e) :: xs => (Kor (p :: map fst xs), Kor (e :: map (fun '(p', e') => ITE p' e' (Const ty Default)) xs))
+    end.
+
   Definition predPack k (pred: Bool @# ty) (val: k @# ty) :=
     (IF pred
-     then pack val
-     else $0).
+     then val
+     else Const ty Default).
 
+  (*
   Definition orKind k (ls: list (Bit (size k) @# ty)) := unpack k (Kor ls).
 
   Definition predPackOr k (ls: list ((Bool @# ty) * (k @# ty))) := ((@Kor _ Bool) (map fst ls), orKind k (map (fun '(p, v) => predPack p v) ls)).
+   *)
 
   Definition createWriteRq ty (idxNum num: nat) (k: Kind) (idx: Bit (Nat.log2_up idxNum) @# ty) (val: Array num k @# ty): WriteRq (Nat.log2_up idxNum) (Array num k) @# ty :=
     STRUCT { "addr" ::= idx ;
