@@ -66,10 +66,10 @@ Section Named.
       counterSpecImpl2: pipeValid = false -> counterImpl = counterSpec;
     }.
 
-Ltac bsimplify_simulatingRule name :=
-  right;
-  exists name;
-  eexists; split; [eauto| do 2 eexists; split; [discharge_SemAction|]].
+  Ltac bsimplify_simulatingRule name :=
+    right;
+    exists name;
+    eexists; split; [eauto| do 2 eexists; split; [discharge_SemAction|]].
 
   (* Proving the trace inclusion of the implementation with respect to the spec *)
   Theorem Incrementer_TraceInclusion:
