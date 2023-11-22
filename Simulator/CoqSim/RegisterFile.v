@@ -121,8 +121,8 @@ Defined.
 
 Fixpoint Tup_lookup{n} : forall (i : Fin.t n)(ks : Fin.t n -> Kind), Tuple (fun i => Val (ks i)) -> {k : Kind & Val k} :=
   match n return forall (i : Fin.t n)(ks : Fin.t n -> Kind), Tuple (fun i => Val (ks i)) -> {k : Kind & Val k} with
-  | 0 => fun i => case0 _ i
-  | S m => fun i ks X => fin_case i _ (existT _ (ks F1) (fst X)) (fun j => (Tup_lookup  j _ (snd X)))
+  | 0 => fun i => Fin.case0 _ i
+  | S m => fun i ks X => fin_case i _ (existT _ (ks Fin.F1) (fst X)) (fun j => (Tup_lookup  j _ (snd X)))
   end.
 
 Definition rf_methcall(state : FileState)(methName : string)(val : {k : Kind & Val k}) : IO (option (option FileUpd * {k : Kind & Val k})). refine
@@ -163,9 +163,9 @@ Proof.
                                | exact (error "Kind mismatch.")
                                | idtac ]. (* n should be 3 *)
       pose (fun i => snd (p0 i)) as k0.
-      exact (let addr := Tup_lookup F1 k0 v in
-             let data_k := Tup_lookup (FS F1) k0 v in
-             let mask := Tup_lookup (FS (FS F1)) k0 v in
+      exact (let addr := Tup_lookup Fin.F1 k0 v in
+             let data_k := Tup_lookup (Fin.FS Fin.F1) k0 v in
+             let mask := Tup_lookup (Fin.FS (Fin.FS Fin.F1)) k0 v in
              do addr' <- coerce addr (Bit (Nat.log2_up (size file)));
              do data' <- coerce data_k (Array (chunk_size file) (kind file));
              do mask' <- coerce mask (Array (chunk_size file) Bool);
@@ -180,8 +180,8 @@ Proof.
                             | exact (error "Kind mismatch.")
                             | idtac ]. (* n should be 2 *)
       pose (fun i => snd (p0 i)) as k0.
-      exact (let addr := Tup_lookup F1 k0 v in
-             let data_k := Tup_lookup (FS F1) k0 v in
+      exact (let addr := Tup_lookup Fin.F1 k0 v in
+             let data_k := Tup_lookup (Fin.FS Fin.F1) k0 v in
              do addr' <- coerce addr (Bit (Nat.log2_up (size file)));
              do data' <- coerce data_k (Array (chunk_size file) (kind file));
              ret (Some (Some (ArrWrite fileName _ (file_writes_no_mask file (bv_to_nat addr') data')), void_nil))).

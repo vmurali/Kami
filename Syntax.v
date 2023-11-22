@@ -1,4 +1,4 @@
-Require Export Bool Ascii String Fin List FunctionalExtensionality Psatz PeanoNat.
+Require Export Bool Ascii String List FunctionalExtensionality Psatz PeanoNat.
 Require Export Kami.Lib.VectorFacts Kami.Lib.EclecticLib.
 
 Require Export Kami.Lib.Word Kami.Lib.WordProperties.
@@ -1359,7 +1359,7 @@ Defined.
 
 Definition Kind_custom_ind :=
   fun (P : Kind -> Type) (f : P Bool) (f0 : forall n : nat, P (Bit n))
-      (f1 : forall (n : nat) (p : t n -> string * Kind), (forall i : t n, P (snd (p i))) -> P (Struct p))
+      (f1 : forall (n : nat) (p : Fin.t n -> string * Kind), (forall i : Fin.t n, P (snd (p i))) -> P (Struct p))
       (f2 : forall (n : nat) (k : Kind), P k -> P (Array n k)) =>
     fix F (k : Kind) : P k :=
     match k as k0 return (P k0) with

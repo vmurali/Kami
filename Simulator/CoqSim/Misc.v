@@ -1,4 +1,4 @@
-Require Import Fin Bool Kami.Lib.EclecticLib String Ascii List Streams.
+Require Import Bool Kami.Lib.EclecticLib String Ascii List Streams.
 Import ListNotations.
 
 Fixpoint Fin n :=
@@ -17,7 +17,7 @@ Fixpoint Vec X n : Type :=
 
 Fixpoint vec_index{n X} : Fin.t n -> Vec X n -> X :=
   match n with
-  | 0 => case0 _
+  | 0 => Fin.case0 _
   | S m => fun i v => fin_case i _ (fst v) (fun j => vec_index j (snd v))
   end.
 
@@ -72,12 +72,12 @@ Fixpoint Tuple{n} : (Fin.t n -> Type) -> Type :=
 Fixpoint Tup_map{n} : forall (ts1 ts2 : Fin.t n -> Type)(fs : forall i, ts1 i -> ts2 i)(t : Tuple ts1), Tuple ts2 :=
   match n with
   | 0 => fun _ _ _ _ => tt
-  | S m => fun ts1 ts2 fs t => (fs F1 (fst t), Tup_map (fun i => ts1 (FS i)) (fun i => ts2 (FS i)) (fun i => fs (FS i)) (snd t))
+  | S m => fun ts1 ts2 fs t => (fs Fin.F1 (fst t), Tup_map (fun i => ts1 (Fin.FS i)) (fun i => ts2 (Fin.FS i)) (fun i => fs (Fin.FS i)) (snd t))
   end.
 
 Fixpoint tup_index{n} : forall (i : Fin.t n) ts, Tuple ts -> ts i :=
   match n with
-  | 0 => case0 _
+  | 0 => Fin.case0 _
   | S m => fun i ts t => fin_case i _ (fst t) (fun j => tup_index j (fun j => ts (Fin.FS j)) (snd t))
   end.
 
@@ -106,10 +106,10 @@ Section Lookup.
 Fixpoint Fin_lookup{X}(pred : X -> bool){n} : (Fin.t n -> X) -> option (Fin.t n) :=
   match n return (Fin.t n -> X) -> option (Fin.t n) with
   | 0 => fun _ => None
-  | S m => fun f => if pred (f F1) then Some F1 else
-      match Fin_lookup pred (fun j => f (FS j)) with
+  | S m => fun f => if pred (f Fin.F1) then Some Fin.F1 else
+      match Fin_lookup pred (fun j => f (Fin.FS j)) with
       | None => None
-      | Some i => Some (FS i)
+      | Some i => Some (Fin.FS i)
       end
   end.
 

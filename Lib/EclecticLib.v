@@ -1,4 +1,4 @@
-Require Import String Coq.Lists.List Fin Eqdep Bool Coq.ZArith.Zdiv Lia.
+Require Import String Coq.Lists.List Eqdep Bool Coq.ZArith.Zdiv Lia.
 Require Import Coq.Arith.Even.
 Require Import Coq.Arith.Div2.
 Require Import Coq.NArith.NArith.
@@ -23,7 +23,7 @@ End NubBy.
 Definition prevFinVal n (i: Fin.t (S n)) :=
   match i with
   | Fin.F1 _ => Fin.F1
-  | Fin.FS _ j => L_R 1 j
+  | Fin.FS _ j => Fin.R 1 j
   end.
 
 Section Tree.
@@ -155,6 +155,7 @@ Definition fin_case n x :
 Ltac fin_dep_destruct v :=
   pattern v; apply fin_case; clear v; intros.
 
+
 Lemma Fin_cast_lemma : forall m n i (p q : m = n),
   Fin.cast i p = Fin.cast i q.
 Proof.
@@ -216,6 +217,62 @@ Definition map_length_red :=
                  f_equal_nat nat S (Datatypes.length (map f l0)) (Datatypes.length l0) IHl) l)
   : forall (A B : Type) (f : A -> B) (l : list A), Datatypes.length (map f l) = Datatypes.length l.
   
+Section nthFinMapEquiv.
+  Variable A B: Type.
+  Variable f: A -> B.
+  Theorem nth_Fin_map_equiv ls: forall i pf,
+      nth_Fin (map f ls) i = f (nth_Fin ls (Fin.cast i pf)).
+  Proof.
+    induction ls; intros i.
+    - apply Fin.case0.
+      exact i.
+    - fin_dep_destruct i; cbn; auto.
+  Defined.
+
+  Theorem nth_Fin_map_equiv_deduce ls i:
+    nth_Fin (map f ls) i = f (nth_Fin ls (Fin.cast i (map_length_red f ls))).
+  Proof.
+    apply (nth_Fin_map_equiv ls i (map_length_red f ls)).
+  Defined.
+
+  Theorem Fin_cast_eq_nat n (i: Fin.t n) (pf: n = n): Fin.cast i pf = i.
+  Proof.
+    induction i; try reflexivity.
+    cbn [Fin.cast].
+    f_equal.
+    apply IHi.
+  Defined.
+
+  Theorem Fin_cast_cast_same m n (i: Fin.t m) (pf1: m = n) (pf2: n = m):
+    Fin.cast (Fin.cast i pf1) pf2 = i.
+  Proof.
+    destruct i.
+    - destruct pf1.
+      reflexivity.
+    - destruct pf1.
+      rewrite ?Fin_cast_eq_nat.
+      reflexivity.
+  Defined.
+
+  Theorem Fin_cast_cast_diff m n p (i: Fin.t m) (pf1: m = n) (pf2: n = p) (pf3: m = p):
+    Fin.cast (Fin.cast i pf1) pf2 = Fin.cast i pf3.
+  Proof.
+    destruct i.
+    - destruct pf2, pf1.
+      rewrite ?Fin_cast_eq_nat.
+      reflexivity.
+    - destruct pf2, pf1.
+      rewrite ?Fin_cast_eq_nat.
+      reflexivity.
+  Defined.
+
+  Theorem Fin_cast_cast_diff_deduce m n p (i: Fin.t m) (pf1: m = n) (pf2: n = p):
+    Fin.cast (Fin.cast i pf1) pf2 = Fin.cast i (eq_trans pf1 pf2).
+  Proof.
+    apply Fin_cast_cast_diff.
+  Defined.
+End nthFinMapEquiv.
+
 Section nth_Fin_map2.
   Variable A B: Type.
   Variable g: A -> B.
@@ -259,9 +316,9 @@ Proof.
   reflexivity.
   simpl in H.
   fin_dep_destruct i.
-  destruct (p F1); [auto|discriminate].
-  apply (IHn (fun j => p (FS j))).
-  destruct (p F1); [auto|discriminate].
+  destruct (p Fin.F1); [auto|discriminate].
+  apply (IHn (fun j => p (Fin.FS j))).
+  destruct (p Fin.F1); [auto|discriminate].
   simpl.
   apply andb_true_intro; split.
   apply H.
@@ -613,6 +670,20 @@ Proof.
   rewrite map_length; auto.
 Qed.
 
+Theorem nth_Fin_getFins n i:
+  nth_Fin (getFins n) i = Fin.cast i (getFins_length n).
+Proof.
+  induction n.
+  - apply Fin.case0.
+  - pattern i; apply fin_case.
+    + reflexivity.
+    + intros.
+      cbn.
+      rewrite (nth_Fin_map_equiv_deduce Fin.FS (getFins n) y).
+      rewrite IHn.
+      apply (f_equal Fin.FS (Fin_cast_cast_diff _ _ _ _)).
+Defined.
+
 Lemma getFins_all : forall n (i: Fin.t n), In i (getFins n).
 Proof.
   induction i; cbn; auto using in_map.
@@ -652,9 +723,9 @@ Section Arr.
     intros; destruct lt_dec; unfold list_arr, nth_default; destruct nth_error eqn:G; auto.
     - erewrite map_nth_error in G; inversion G; subst.
       + reflexivity.
-      + assert (i = proj1_sig (to_nat (of_nat_lt l))) as P0.
-        { rewrite to_nat_of_nat; simpl; reflexivity. }
-        specialize (getFins_nth_error (of_nat_lt l)) as P1.
+      + assert (i = proj1_sig (Fin.to_nat (Fin.of_nat_lt l))) as P0.
+        { rewrite Fin.to_nat_of_nat; simpl; reflexivity. }
+        specialize (getFins_nth_error (Fin.of_nat_lt l)) as P1.
         cbv zeta in P1.
         rewrite <- P0 in P1.
         assumption.
@@ -3368,7 +3439,7 @@ Proof.
   apply IHm; lia.
 Qed.
 
-Lemma Fineqb_refl {m} (n : t m) :
+Lemma Fineqb_refl {m} (n : Fin.t m) :
   Fin.eqb n n = true.
 Proof.
   rewrite Fin.eqb_eq; reflexivity.
@@ -3441,7 +3512,7 @@ Proof.
 Qed.
 
 Lemma list_arr_length {A : Type} n :
-  forall (arr : t n -> A),
+  forall (arr : Fin.t n -> A),
     n = length (list_arr arr).
 Proof.
   unfold list_arr; intros.
@@ -3678,7 +3749,7 @@ Section FifoProps.
     rewrite hd_firstn.
     - rewrite hdRotateList.
       + unfold convertToList.
-        rewrite <- list_arr_correct_simple, to_nat_of_nat; reflexivity.
+        rewrite <- list_arr_correct_simple, Fin.to_nat_of_nat; reflexivity.
       + unfold convertToList, list_arr.
         rewrite map_length, getFins_length.
         apply deq_lt_size.
@@ -3790,8 +3861,8 @@ Section FifoProps.
                     (firstn (Z.to_nat cutLen)
                             (rotateList (Z.to_nat deq)
                                         (convertToList
-                                           (fun i : t size =>
-                                              if Fin.eqb i (of_nat_lt enq_lt_size)
+                                           (fun i : Fin.t size =>
+                                              if Fin.eqb i (Fin.of_nat_lt enq_lt_size)
                                               then val else implArray i)))) m
                   <> None) as G1.
           { intro G1; rewrite G1 in G0; discriminate. }
@@ -3805,15 +3876,15 @@ Section FifoProps.
         { unfold convertToList.
           rewrite <- list_arr_length; reflexivity.
         }
-        assert (length (convertToList (fun i : t size => if Fin.eqb i (of_nat_lt enq_lt_size) then val else implArray i)) = size) as P0.
+        assert (length (convertToList (fun i : Fin.t size => if Fin.eqb i (Fin.of_nat_lt enq_lt_size) then val else implArray i)) = size) as P0.
         { unfold convertToList.
           rewrite <- list_arr_length; reflexivity.
         }
         repeat rewrite nth_error_rotate'; 
           [rewrite P0, P |rewrite P0 | rewrite P]; try lia.
         specialize (Nat.mod_upper_bound (m + (Z.to_nat deq)) _ sizeNeq0) as P1.
-        assert (proj1_sig (to_nat (of_nat_lt P1)) = (m + (Z.to_nat deq)) mod size) as P2.
-        { rewrite to_nat_of_nat; reflexivity. }
+        assert (proj1_sig (Fin.to_nat (Fin.of_nat_lt P1)) = (m + (Z.to_nat deq)) mod size) as P2.
+        { rewrite Fin.to_nat_of_nat; reflexivity. }
         rewrite <- P2.
         unfold convertToList.
         repeat rewrite list_arr_correct_simple.
@@ -3821,9 +3892,9 @@ Section FifoProps.
         destruct Fin.eqb eqn:G; auto.
         exfalso.
         rewrite Fin.eqb_eq in G.
-        assert (proj1_sig (to_nat (of_nat_lt P1)) = proj1_sig (to_nat (of_nat_lt enq_lt_size))).
+        assert (proj1_sig (Fin.to_nat (Fin.of_nat_lt P1)) = proj1_sig (Fin.to_nat (Fin.of_nat_lt enq_lt_size))).
         { rewrite G; auto. }
-        repeat rewrite to_nat_of_nat in H; simpl in H.
+        repeat rewrite Fin.to_nat_of_nat in H; simpl in H.
         rewrite <- (Nat2Z.id m), <- Z2Nat.inj_add in H; try lia;
           [|apply Z.mod_pos_bound; rewrite pow2_of_nat, sizePow2; lia].
         rewrite <- (Nat2Z.id size) in H at 2.
@@ -3862,15 +3933,15 @@ Section FifoProps.
           -- rewrite H in P4.
              assert (enqP1 - deqP1 = Z.of_nat m)%Z as P5 by lia.
              rewrite P5, Z.mod_small in l; try lia.
-    - assert (length (convertToList (fun i : t size => if Fin.eqb i (of_nat_lt enq_lt_size) then val else implArray i)) = size) as P.
+    - assert (length (convertToList (fun i : Fin.t size => if Fin.eqb i (Fin.of_nat_lt enq_lt_size) then val else implArray i)) = size) as P.
         { unfold convertToList, list_arr.
           rewrite map_length, getFins_length; reflexivity.
         }
         specialize sizeNeq0 as P1.
         rewrite nth_error_rotate'; rewrite P; try lia.
         unfold convertToList.
-        assert (proj1_sig (to_nat (of_nat_lt enq_lt_size)) = Z.to_nat enq) as P0.
-        { rewrite to_nat_of_nat; reflexivity. }
+        assert (proj1_sig (Fin.to_nat (Fin.of_nat_lt enq_lt_size)) = Z.to_nat enq) as P0.
+        { rewrite Fin.to_nat_of_nat; reflexivity. }
         assert ((Z.to_nat cutLen + Z.to_nat deq) mod size = Z.to_nat enq) as P2.
         { destruct (Z_lt_le_dec (enqP1 - deqP1) 0).
           - rewrite <- (Z_mod_plus_full _ 1 _), Z.mod_small; try lia.

@@ -208,13 +208,13 @@ Fixpoint eval_Expr{k}(e : Expr eval_Kind k) : eval_FK k :=
 
 Fixpoint get_chunk_struct{n} : forall (f : Fin.t n -> nat)(v : BV (sumSizes f))(i : Fin.t n), BV (f i) :=
   match n with
-  | 0 => fun f _ i => case0 (fun j => BV (f j)) i
-  | _ => fun f v i => fin_case _ (fun j => BV (f j)) (bv_trunc_msb v) (fun j => get_chunk_struct (fun k => f (FS k)) (bv_trunc_lsb v) j)
+  | 0 => fun f _ i => Fin.case0 (fun j => BV (f j)) i
+  | _ => fun f v i => fin_case _ (fun j => BV (f j)) (bv_trunc_msb v) (fun j => get_chunk_struct (fun k => f (Fin.FS k)) (bv_trunc_lsb v) j)
   end.
 
 Fixpoint get_chunk_array{n} : forall (k : nat)(v : BV (n * k))(i : Fin.t n), BV k.
   refine match n with
-  | 0 => fun _ _ i => case0 _ i
+  | 0 => fun _ _ i => Fin.case0 _ i
   | S m => fun k v i => _
   end.
 Proof.

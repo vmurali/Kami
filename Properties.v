@@ -526,7 +526,7 @@ Section evalExpr.
     pose proof (fin_to_nat_bound i).
     rewrite Z.mod_small.
     rewrite Nat2Z.id.
-    destruct (lt_dec (proj1_sig (to_nat i)) n); try lia.
+    destruct (lt_dec (proj1_sig (Fin.to_nat i)) n); try lia.
     unfold evalExpr at 1.
     erewrite Fin.of_nat_ext, Fin.of_nat_to_nat_inv; eauto.
     split; try lia. rewrite pow2_of_nat.
@@ -6717,7 +6717,7 @@ Proof.
 Qed.
 
 Lemma arr_nth_Fin' {A : Type} :
-  forall m (arr : t m -> A),
+  forall m (arr : Fin.t m -> A),
     arr = (nth_Fin' _ (list_arr_length arr)).
 Proof.
   intros.
@@ -6725,8 +6725,8 @@ Proof.
   rewrite (nth_Fin'_nth (arr x)).
   rewrite <- nth_default_eq, <- list_arr_correct.
   destruct lt_dec.
-  - specialize (of_nat_to_nat_inv x) as P.
-    rewrite (of_nat_ext l (proj2_sig (to_nat x))), P; reflexivity.
+  - specialize (Fin.of_nat_to_nat_inv x) as P.
+    rewrite (Fin.of_nat_ext l (proj2_sig (Fin.to_nat x))), P; reflexivity.
   - exfalso.
     apply n, fin_to_nat_bound.
 Qed.

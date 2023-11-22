@@ -1,4 +1,4 @@
-Require Export Bool Ascii String Fin List FunctionalExtensionality Psatz PeanoNat.
+Require Export Bool Ascii String List FunctionalExtensionality Psatz PeanoNat.
 Require Export Kami.Syntax.
 
 Inductive Failure :=

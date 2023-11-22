@@ -73,10 +73,10 @@ Definition init_val : word Xlen := Xlen 'h"e".
 (* mask = {true; false; false; false; true} *)
 Definition mask_func1 : Fin.t num -> bool := fun (i : Fin.t num) =>
   match i with
-  | F1 _ => true
-  | FS _ (F1 _) => false
-  | FS _ (FS _ (F1 _)) => false
-  | FS _ (FS _ (FS _ (F1 _))) => false
+  | Fin.F1 _ => true
+  | Fin.FS _ (Fin.F1 _) => false
+  | Fin.FS _ (Fin.FS _ (Fin.F1 _)) => false
+  | Fin.FS _ (Fin.FS _ (Fin.FS _ (Fin.F1 _))) => false
   | _ => true
   end.
 
@@ -116,42 +116,42 @@ Qed.
 
 Lemma mask1_under_true : exists (i : Fin.t num), mask_func1 i = true /\ f2n i < num - (write_index - read_under_index).
 Proof.
-  exists F1; simpl; auto.
+  exists Fin.F1; simpl; auto.
 Qed.
 
 Lemma mask1_under_false : exists (i : Fin.t num), mask_func1 i = false /\ f2n i < num - (write_index - read_under_index).
 Proof.
-  exists (FS F1); simpl; auto.
+  exists (Fin.FS Fin.F1); simpl; auto.
 Qed.
 
 Lemma mask1_over_true : exists (i : Fin.t num), mask_func1 i = true /\ f2n i > (read_over_index - write_index).
 Proof.
-  exists (FS (FS (FS (FS F1)))); unfold f2n; simpl; auto.
+  exists (Fin.FS (Fin.FS (Fin.FS (Fin.FS Fin.F1)))); unfold f2n; simpl; auto.
 Qed.
 
 Lemma mask1_over_false : exists (i : Fin.t num), mask_func1 i = false /\ f2n i > (read_over_index - write_index).
 Proof.
-  exists (FS (FS (FS F1))); unfold f2n; simpl; auto.
+  exists (Fin.FS (Fin.FS (Fin.FS Fin.F1))); unfold f2n; simpl; auto.
 Qed.
 
 Lemma mask2_under_true : exists (i : Fin.t num), mask_func2 i = true /\ f2n i < num - (write_index - read_under_index).
 Proof.
-  exists (FS F1); simpl; auto.
+  exists (Fin.FS Fin.F1); simpl; auto.
 Qed.
 
 Lemma mask2_under_false : exists (i : Fin.t num), mask_func2 i = false /\ f2n i < num - (write_index - read_under_index).
 Proof.
-  exists F1; simpl; auto.
+  exists Fin.F1; simpl; auto.
 Qed.
 
 Lemma mask2_over_true : exists (i : Fin.t num), mask_func2 i = true /\ f2n i > (read_over_index - write_index).
 Proof.
-  exists (FS (FS (FS F1))); unfold f2n; simpl; auto.
+  exists (Fin.FS (Fin.FS (Fin.FS Fin.F1))); unfold f2n; simpl; auto.
 Qed.
 
 Lemma mask2_over_false : exists (i : Fin.t num), mask_func2 i = false /\ f2n i > (read_over_index - write_index).
 Proof.
-  exists (FS (FS (FS (FS F1)))); unfold f2n; simpl; auto.
+  exists (Fin.FS (Fin.FS (Fin.FS (Fin.FS Fin.F1)))); unfold f2n; simpl; auto.
 Qed.
 
 (* good values *)
@@ -277,18 +277,18 @@ Definition expected_read_over(val : word Xlen) : ConstT (Array num Data) :=
 (*translations*)
 Definition read_under_Fin_to_write_Fin(i : Fin.t num) : Fin.t num.
 Proof.
-  refine (@of_nat_lt (f2n i - (write_index - read_under_index)) num _).
+  refine (@Fin.of_nat_lt (f2n i - (write_index - read_under_index)) num _).
   unfold f2n.
-  destruct to_nat.
+  destruct Fin.to_nat.
   simpl; lia.
 Defined.
 
 Definition read_over_Fin_to_write_Fin(i : Fin.t num)(pf : (f2n i < num - (read_over_index - write_index))%nat) : Fin.t num.
 Proof.
-  refine (@of_nat_lt (f2n i + (read_over_index - write_index)) num _).
+  refine (@Fin.of_nat_lt (f2n i + (read_over_index - write_index)) num _).
   unfold f2n.
   unfold f2n in pf.
-  destruct to_nat.
+  destruct Fin.to_nat.
   simpl proj1_sig.
   simpl in pf.
   simpl.
