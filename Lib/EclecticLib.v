@@ -85,7 +85,7 @@ Section nth_Fin.
                    | Fin.F1 _ => fun _ => x
                    | Fin.FS _ y => fun pf =>
                                      nth_Fin xs
-                                             match eq_add_S _ _ pf in _ = Y return Fin.t Y with
+                                             match eq_add_S _ (length xs) pf in _ = Y return Fin.t Y with
                                              | eq_refl => y
                                              end
                    end eq_refl
