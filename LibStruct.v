@@ -12,7 +12,7 @@ Notation extractFieldExpr sz e start width :=
      (UniBit (TruncLsb (start + width) (sz - (start + width))) e)).
 
 Notation extractFieldExprDynamicWidth e start width :=
-  (UniBit (TruncLsb start width)
+  (UniBit (TruncMsb start width)
      (ZeroExtendTruncLsb (start + width) e)).
 
 Section ty.
