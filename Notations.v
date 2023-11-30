@@ -269,6 +269,8 @@ Notation "'LETAE' name <- act ; cont " :=
 Notation "'LETAE' name : t <- act ; cont " :=
   (LetAction (k := t) (convertLetExprSyntax_ActionT act) (fun name => cont))
     (at level 13, right associativity, name at level 99) : kami_action_scope.
+Notation "'RetAE' expr" :=
+  (convertLetExprSyntax_ActionT expr%kami_expr) (at level 13) : kami_expr_scope.
   
 Notation "'SystemE' ls ; c " :=
   (SysE ls c)%kami_expr (at level 13, right associativity, ls at level 99): kami_expr_scope.
