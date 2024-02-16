@@ -5,6 +5,8 @@ Require Import Kami.Tutorial.TacticsEx.
 
 Definition incrMod : Mod := Base (IncrementerImpl 5 "test").
 
+Set Extraction Output Directory ".".
+
 Separate Extraction
 
   getFins

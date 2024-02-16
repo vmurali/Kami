@@ -263,12 +263,6 @@ Notation "'LETC' name <- v ; c " :=
 Notation "'LETC' name : t <- v ; c " :=
   (LETE name : t <- RetE v ; c)%kami_expr
                                (at level 13, right associativity, name at level 99) : kami_expr_scope.
-Notation "'LETAE' name <- act ; cont " :=
-  (LetAction (convertLetExprSyntax_ActionT act) (fun name => cont))
-    (at level 13, right associativity, name at level 99) : kami_action_scope.
-Notation "'LETAE' name : t <- act ; cont " :=
-  (LetAction (k := t) (convertLetExprSyntax_ActionT act) (fun name => cont))
-    (at level 13, right associativity, name at level 99) : kami_action_scope.
 Notation "'RetAE' expr" :=
   (convertLetExprSyntax_ActionT expr%kami_expr) (at level 13) : kami_expr_scope.
   
@@ -291,6 +285,12 @@ Notation "k ## ty" := (LetExprSyntax ty k) (no associativity, at level 98, only 
 (** Notations for action *)
 
 Declare Scope kami_action_scope.
+Notation "'LETAE' name <- act ; cont " :=
+  (LetAction (convertLetExprSyntax_ActionT act) (fun name => cont))
+    (at level 13, right associativity, name at level 99) : kami_action_scope.
+Notation "'LETAE' name : t <- act ; cont " :=
+  (LetAction (k := t) (convertLetExprSyntax_ActionT act) (fun name => cont))
+    (at level 13, right associativity, name at level 99) : kami_action_scope.
 Notation "'Call' meth ( a : argT ) ; cont " :=
   (MCall meth%string (argT, Void) a%kami_expr (fun _ => cont))
     (at level 13, right associativity, meth at level 0, a at level 99) : kami_action_scope.

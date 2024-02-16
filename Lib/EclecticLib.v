@@ -1,6 +1,4 @@
 Require Import String Coq.Lists.List Eqdep Bool Coq.ZArith.Zdiv Lia.
-Require Import Coq.Arith.Even.
-Require Import Coq.Arith.Div2.
 Require Import Coq.NArith.NArith.
 Require Import Arith_base.
 Require Import Arith Coq.ZArith.Znat Psatz.
@@ -853,7 +851,7 @@ Proof.
   eapply IHi; eauto.
 Qed.
 
-Set Firstorder Solver auto with *.
+#[global,export] Set Firstorder Solver auto with *.
 (* fold_right *)
 Section list.
   Variable A: Type.
@@ -2416,8 +2414,8 @@ Section strong.
   Hypothesis PH : forall n, (forall m, m < n -> P m) -> P n.
 
   Lemma strong' : forall n m, m <= n -> P m.
-    induction n; simpl; intuition; apply PH; intuition.
-    elimtype False; lia.
+    induction n; simpl; intuition auto with *; apply PH; intuition.
+    exfalso; lia.
   Qed.
 
   Theorem strong : forall n, P n.
@@ -2430,7 +2428,7 @@ Theorem div2_odd : forall n,
     -> n = S (2 * Nat.div2 n).
   induction n as [n] using strong; simpl; intuition.
 
-  destruct n as [|n]; simpl in *; intuition.
+  destruct n as [|n]; simpl in *; intuition auto with *.
   destruct n as [|n]; simpl in *; intuition.
   do 2 f_equal.
   replace (Nat.div2 n + S (Nat.div2 n + 0)) with (S (Nat.div2 n + (Nat.div2 n + 0))); auto.
@@ -2442,7 +2440,7 @@ Theorem div2_even : forall n,
   induction n as [n] using strong; simpl; intuition.
 
   destruct n as [|n]; simpl in *; intuition.
-  destruct n as [|n]; simpl in *; intuition.
+  destruct n as [|n]; simpl in *; intuition auto with *.
   f_equal.
   replace (Nat.div2 n + S (Nat.div2 n + 0)) with (S (Nat.div2 n + (Nat.div2 n + 0))); auto.
 Qed.
@@ -2454,7 +2452,7 @@ Theorem drop_mod2 : forall n k,
 
   do 2 (destruct n; simpl in *; repeat rewrite untimes2 in *; intuition).
 
-  destruct k; simpl in *; intuition.
+  destruct k; simpl in *; intuition auto with *.
 
   destruct k; simpl; intuition.
   rewrite <- plus_n_Sm.
@@ -2680,7 +2678,7 @@ Lemma mod2sub: forall a b,
     b <= a ->
     mod2 (a - b) = xorb (mod2 a) (mod2 b).
 Proof.
-  intros. remember (a - b) as c. revert dependent b. revert a. revert c.
+  intros. remember (a - b) as c. generalize dependent b. revert a. revert c.
   change (forall c,
              (fun c => forall a b, b <= a -> c = a - b -> mod2 c = xorb (mod2 a) (mod2 b)) c).
   apply strong.
@@ -2747,7 +2745,7 @@ Section lia_compat.
   Theorem Npow2_nat : forall n, nat_of_N (Npow2 n) = Nat.pow 2 n.
     induction n as [|n IHn]; simpl; intuition.
     rewrite <- IHn; clear IHn.
-    case_eq (Npow2 n); intuition.
+    case_eq (Npow2 n); intuition auto with *.
   Qed.
 
 End lia_compat.

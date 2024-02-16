@@ -1,4 +1,4 @@
-Require Import Recdef List Psatz Div2.
+Require Import Recdef List Psatz.
 
 Import ListNotations.
 
@@ -89,7 +89,7 @@ Section UnApp.
         simpl. auto with arith.
       + simpl in UA.
         simpl in NltM. 
-        apply Arith_prebase.lt_S_n in NltM.
+        apply Arith_base.lt_S_n_stt in NltM.
         name_term ua' (unapp n xs) UA'.  rewrite <- UA' in UA.
         destruct ua' as [m1' m2'].
         injection UA; intros M1 M2; subst m1 m2; clear UA.

@@ -2,8 +2,6 @@ Require Import Coq.ZArith.BinIntDef Coq.ZArith.BinInt Coq.ZArith.Zdiv Eqdep.
 Require Import Kami.Lib.Word.
 Require Import Kami.Lib.EclecticLib.
 Require Import Lia.
-Require Import Coq.Arith.Even.
-Require Import Coq.Arith.Div2.
 Require Import Coq.NArith.NArith.
 Require Import Arith_base.
 Require Import Arith Coq.ZArith.Znat Psatz.
@@ -13,7 +11,7 @@ Lemma nat_cast_eq_rect: forall (P : nat -> Type),
       nat_cast P e pn = eq_rect n P pn m e.
 Proof.
   destruct e.
-  revert dependent P; induction n; simpl; intros.
+  generalize dependent P; induction n; simpl; intros.
   - reflexivity.
   - rewrite IHn. reflexivity.
 Qed.
@@ -697,7 +695,7 @@ Proof.
   + subst. rewrite ws_zero_trivial. auto.
   + arithmetizeWord.
     repeat rewrite Z.mod_small; try lia;
-    split; intuition;
+    split; intuition auto with *;
     apply Z2Nat.inj_lt; try lia; simpl;
     rewrite <- Zpow_of_nat;
     rewrite Nat2Z.id;
@@ -726,8 +724,8 @@ Proof.
   - rewrite Z.mul_comm.
     rewrite <- Z_div_mod_eq_full.
     auto.
-  - split; try apply Z.div_pos; intuition.
-    apply Z.div_lt_upper_bound; intuition.
+  - split; try apply Z.div_pos; intuition auto with *.
+    apply Z.div_lt_upper_bound; intuition auto with *.
     rewrite <- Z.pow_add_r; try lia.
     rewrite <- Nat2Z.inj_add. rewrite Nat.add_comm.
     lia.
