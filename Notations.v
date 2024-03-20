@@ -146,7 +146,7 @@ Notation "{< a , .. , b >}" :=
   ((BinBit (Concat _ _)) a .. (BinBit (Concat _ _) b (@Const _ (Bit 0) WO)) ..)
     (at level 100, a at level 99): kami_expr_scope.
 Notation "{< a , .. , b >}" :=
-  (wcombine b .. (wcombine a WO) ..)
+  (wcombine a .. (wcombine b WO) ..)
     (at level 100, a at level 99): word_scope.
 
 Infix "<" := (BinBitBool (LessThan _)) : kami_expr_scope.
