@@ -1620,6 +1620,12 @@ Proof.
   unfold ModuleFilterLabels; repeat red; intros; rewrite H, H0; reflexivity.
 Qed.
 
+Theorem WfLetExprSyntax_regs :
+  forall ty k regs (e: LetExprSyntax ty k), WfActionT regs (convertLetExprSyntax_ActionT e).
+Proof.
+  induction e; repeat constructor; auto.
+Qed.
+
 Lemma WfActionT_ReadsWellDefined_perm : forall (k : Kind)(a : ActionT type k)(retl : type k)
                                           (m1 : BaseModule)(o readRegs newRegs : RegsT)(calls : MethsT),
     WfActionT (getRegisters m1) a ->
