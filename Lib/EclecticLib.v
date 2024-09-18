@@ -1,4 +1,4 @@
-Require Import String Coq.Lists.List Eqdep Bool Coq.ZArith.Zdiv Lia.
+Require Import String Coq.Lists.List Eqdep Bool Coq.ZArith.Zdiv Lia Coq.Vectors.Fin.
 Require Import Coq.NArith.NArith.
 Require Import Arith_base.
 Require Import Arith Coq.ZArith.Znat Psatz.
@@ -665,7 +665,7 @@ Definition mapOrFins n (x: Fin.t n) := fold_left (fun a b => x = b \/ a) (getFin
 Lemma getFins_length : forall n, length (getFins n) = n.
 Proof.
   induction n; cbn; auto.
-  rewrite map_length; auto.
+  rewrite length_map; auto.
 Qed.
 
 Theorem nth_Fin_getFins n i:
@@ -728,11 +728,11 @@ Section Arr.
         rewrite <- P0 in P1.
         assumption.
     - exfalso.
-      rewrite nth_error_None, map_length, getFins_length in G; lia.
+      rewrite nth_error_None, length_map, getFins_length in G; lia.
     - exfalso.
       assert (nth_error (map arr (getFins n)) i <> None).
       { congruence. }
-      rewrite nth_error_Some, map_length, getFins_length in H; contradiction.
+      rewrite nth_error_Some, length_map, getFins_length in H; contradiction.
   Qed.
       
   Lemma list_arr_correct_simple :
@@ -1527,8 +1527,8 @@ Section filter.
       map f (filter g ls) = map f ls -> filter g ls = ls.
   Proof.
     intros.
-    pose proof (map_length f (filter g ls)) as sth1.
-    pose proof (map_length f ls) as sth2.
+    pose proof (length_map f (filter g ls)) as sth1.
+    pose proof (length_map f ls) as sth2.
     rewrite H in *.
     rewrite sth1 in sth2.
     apply filter_length_same; auto.
@@ -1764,7 +1764,7 @@ Proof.
 Qed.
 
 
-Lemma combine_length A B n:
+Lemma length_combine A B n:
   forall (l1: list A) (l2: list B),
     length l1 = n ->
     length l2 = n ->
@@ -1786,9 +1786,9 @@ Lemma zip4_length A B C D n:
     length (zip4 l1 l2 l3 l4) = n.
 Proof.
   unfold zip4; intros.
-  assert (length (List.combine l1 l2) = n) by (eapply combine_length; eauto).
-  assert (length (List.combine l3 l4) = n) by (eapply combine_length; eauto).
-  eapply combine_length; eauto.
+  assert (length (List.combine l1 l2) = n) by (eapply length_combine; eauto).
+  assert (length (List.combine l3 l4) = n) by (eapply length_combine; eauto).
+  eapply length_combine; eauto.
 Qed.
 
 (* Lemma length_upto t: *)
@@ -1799,10 +1799,10 @@ Qed.
 (*   induction t; simpl; auto; intros. *)
 (*   destruct (Nat.eq_dec b t); simpl; subst. *)
 (*   - destruct t; auto. *)
-(*     rewrite seq_length. *)
+(*     rewrite length_seq. *)
 (*     auto. *)
 (*   - specialize (IHt b ltac:(lia)). *)
-(*     rewrite seq_length. *)
+(*     rewrite length_seq. *)
 (*     destruct b; auto. *)
 (* Qed. *)
 
@@ -1830,8 +1830,8 @@ Lemma nth_zip4 A B C D n:
               nth i (zip4 l1 l2 l3 l4) ((a, b), (c, d)) = ((nth i l1 a, nth i l2 b), (nth i l3 c, nth i l4 d)).
 Proof.
   unfold zip4; intros.
-  assert (length (List.combine l1 l2) = n) by (eapply combine_length; eauto).
-  assert (length (List.combine l3 l4) = n) by (eapply combine_length; eauto).
+  assert (length (List.combine l1 l2) = n) by (eapply length_combine; eauto).
+  assert (length (List.combine l3 l4) = n) by (eapply length_combine; eauto).
   repeat erewrite nth_combine; eauto.
 Qed.
 
@@ -1846,7 +1846,7 @@ Lemma upto_0_n_length n:
   0 <> n ->
   length (seq 0 n) <> 0.
 Proof.
-  rewrite seq_length.
+  rewrite length_seq.
   intros; congruence.
 Qed.
 
@@ -3236,7 +3236,7 @@ Proof.
   induction n; auto; intros.
   simpl; rewrite IHn.
   destruct l; auto.
-  rewrite snoc_rapp, app_length; simpl; lia.
+  rewrite snoc_rapp, length_app; simpl; lia.
 Qed.
 
 Lemma hd_firstn {A : Type} (l : list A):
@@ -3260,7 +3260,7 @@ Proof.
   - simpl; rewrite IHn, snoc_rapp.
     + rewrite nth_error_app1; auto.
       apply Nat.succ_lt_mono; assumption.
-    + rewrite snoc_rapp, app_length; simpl in *; lia.
+    + rewrite snoc_rapp, length_app; simpl in *; lia.
 Qed.
 
 Lemma firstn_app' {A : Type} (l1 : list A):
@@ -3316,7 +3316,7 @@ Proof.
       * rewrite firstn_all2; auto.
         apply firstn_le_length.
       * rewrite firstn_length_le; auto.
-    + repeat rewrite firstn_all2; auto; try rewrite app_length; simpl in *; lia.
+    + repeat rewrite firstn_all2; auto; try rewrite length_app; simpl in *; lia.
 Qed.
 
 Lemma nth_error_nil_None' :
@@ -3353,7 +3353,7 @@ Proof.
       rewrite IHn.
       * rewrite <- plus_n_Sm, snoc_rapp, nth_error_app1; auto.
         simpl in *; lia.
-      * rewrite snoc_rapp, app_length; simpl in *; lia.
+      * rewrite snoc_rapp, length_app; simpl in *; lia.
 Qed.
 
 Lemma nth_error_rotate' {A : Type} m :
@@ -3385,7 +3385,7 @@ Proof.
              - rewrite Nat.add_comm, <- Nat.add_sub_assoc, Nat.add_comm, mod_add_r; try lia.
                apply IHn; assumption.
            }
-           rewrite P0, app_length, Nat.add_1_r, nth_error_app2.
+           rewrite P0, length_app, Nat.add_1_r, nth_error_app2.
            ++ rewrite P1, Nat.sub_diag; simpl; auto.
               destruct (zerop x); auto.
               exfalso; subst; lia.
@@ -3395,14 +3395,14 @@ Proof.
         -- specialize (Nat.mod_upper_bound (m + n) (S (length l)) ltac:(lia)) as P0.
            apply -> Nat.lt_succ_r in P0.
            destruct (le_lt_eq_dec _ _ P0) as [P1 | P1].
-           ++ rewrite app_length, Nat.add_1_r, nth_error_app1; auto.
+           ++ rewrite length_app, Nat.add_1_r, nth_error_app1; auto.
               rewrite <- (Nat.add_1_l (m + n)), <- (Nat.add_mod_idemp_r 1 _); [|simpl; lia].
               rewrite (Nat.mod_small (1 + _)), (Nat.add_1_l ((m + n) mod _)); [simpl; auto|].
               cbn [length]; lia.
            ++ exfalso.
               apply n0; cbn[length].
               rewrite <- Nat.add_1_l, <- Nat.add_mod_idemp_r, P1, Nat.add_1_l, Nat.mod_same; auto.
-      * rewrite snoc_rapp, app_length; simpl in *; lia.
+      * rewrite snoc_rapp, length_app; simpl in *; lia.
 Qed.
 
 Lemma nth_error_eq {A : Type} :
@@ -3469,15 +3469,15 @@ Proof.
     rewrite seq_eq.
     destruct (le_lt_eq_dec _ _ H).
     + rewrite nth_error_app1; auto.
-      rewrite seq_length; assumption.
+      rewrite length_seq; assumption.
     + rewrite nth_error_app2; subst.
-      * rewrite seq_length, diag.
+      * rewrite length_seq, diag.
         reflexivity.
-      * rewrite seq_length; assumption.
+      * rewrite length_seq; assumption.
   - intros.
     assert (nth_error (seq m size) n <> None) as P.
     { intro P; rewrite P in H; discriminate. }
-    rewrite nth_error_Some, seq_length in P.
+    rewrite nth_error_Some, length_seq in P.
     assumption.
 Qed.
 
@@ -3485,7 +3485,7 @@ Lemma seq_nth_error_None size m n :
   size <= n <->
   nth_error (seq m size) n = None.
 Proof.
-  rewrite nth_error_None, seq_length; reflexivity.
+  rewrite nth_error_None, length_seq; reflexivity.
 Qed.
 
 Lemma Zlor_bounds sz m n :
@@ -3514,7 +3514,7 @@ Lemma list_arr_length {A : Type} n :
     n = length (list_arr arr).
 Proof.
   unfold list_arr; intros.
-  rewrite map_length, getFins_length; reflexivity.
+  rewrite length_map, getFins_length; reflexivity.
 Qed.
 Lemma firstn_map {A B: Type} (l : list A) (f : A -> B):
   forall n,
@@ -3564,7 +3564,7 @@ Corollary firstn_seq_le2 n :
     firstn n (seq m size) = seq m size.
 Proof.
   intros; rewrite firstn_all2; auto.
-  rewrite seq_length; assumption.
+  rewrite length_seq; assumption.
 Qed.
 
 Corollary skipn_seq_le2 n :
@@ -3573,7 +3573,7 @@ Corollary skipn_seq_le2 n :
     skipn n (seq m size) = nil.
 Proof.
   intros; rewrite skipn_all2; auto.
-  rewrite seq_length; assumption.
+  rewrite length_seq; assumption.
 Qed.
 
 Lemma tl_map {A B : Type} (l : list A) (f : A -> B) :
@@ -3749,7 +3749,7 @@ Section FifoProps.
       + unfold convertToList.
         rewrite <- list_arr_correct_simple, Fin.to_nat_of_nat; reflexivity.
       + unfold convertToList, list_arr.
-        rewrite map_length, getFins_length.
+        rewrite length_map, getFins_length.
         apply deq_lt_size.
     - intro P; apply H.
       rewrite <- cutLen_0_iff.
@@ -3933,7 +3933,7 @@ Section FifoProps.
              rewrite P5, Z.mod_small in l; try lia.
     - assert (length (convertToList (fun i : Fin.t size => if Fin.eqb i (Fin.of_nat_lt enq_lt_size) then val else implArray i)) = size) as P.
         { unfold convertToList, list_arr.
-          rewrite map_length, getFins_length; reflexivity.
+          rewrite length_map, getFins_length; reflexivity.
         }
         specialize sizeNeq0 as P1.
         rewrite nth_error_rotate'; rewrite P; try lia.

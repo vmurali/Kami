@@ -319,7 +319,7 @@ Proof.
   apply (map_nth_error (fun x => (fst x, projT1 (snd x)))) in Heqnth_err0.
   rewrite <- SameKindAttrs_inlineAll_Meths, map_app, nth_error_app1 in Heqnth_err0.
   + apply (nth_error_In _ _ Heqnth_err0).
-  + rewrite map_length; assumption.
+  + rewrite length_map; assumption.
 Qed.
 
 Lemma SemRegExprVals expr :
@@ -496,7 +496,7 @@ Proof.
   rewrite IHxs.
   unfold inlineSingle_Flat_pos.
   destruct nth_error; auto.
-  rewrite map_length.
+  rewrite length_map.
   reflexivity.
 Qed.
 
@@ -538,7 +538,7 @@ Proof.
               assert (nth_error (fold_left (inlineSingle_Flat_pos l') (seq 0 (n - Datatypes.length l)) l ++ l') n <> None) as P1.
               { rewrite <- Heqnth_err2; intro; discriminate. }
               rewrite nth_error_Some in P1.
-              rewrite app_length, inlineSingle_Flat_pos_lengths in P1.
+              rewrite length_app, inlineSingle_Flat_pos_lengths in P1.
               symmetry in Heqnth_err.
               rewrite nth_error_None in Heqnth_err.
               lia.
@@ -571,7 +571,7 @@ Proof.
               rewrite nth_error_Some in H.
               symmetry in Heqnth_err.
               rewrite nth_error_None in Heqnth_err.
-              rewrite app_length in H.
+              rewrite length_app in H.
               rewrite Nat.sub_diag in Heqnth_err.
               lia.
            ++ unfold inlineSingle_Flat_pos.
@@ -591,7 +591,7 @@ Lemma inlineAll_Meths_RegFile_fold_flat :
 Proof.
   intros.
   specialize (Nat.le_add_r (length l) (length l')) as P0.
-  rewrite app_length, (seq_app' _ P0), fold_left_app, Nat.add_0_l.
+  rewrite length_app, (seq_app' _ P0), fold_left_app, Nat.add_0_l.
   rewrite inlineAll_Meths_RegFile_fold_flat1; auto.
   destruct (zerop (length l')).
   - rewrite e. rewrite Nat.add_comm, Nat.add_sub; auto.
@@ -804,9 +804,9 @@ Lemma inlineSome_pos_app (l1 l2 : list DefMethT) ty k (a : ActionT ty k) :
 Proof.
   intros.
   assert (n <= length (l1 ++ l2)) as P0.
-  { rewrite app_length; lia. }
-  rewrite H, H0, <- app_length.
-  rewrite (seq_app' _ P0), fold_left_app, app_length, H.
+  { rewrite length_app; lia. }
+  rewrite H, H0, <- length_app.
+  rewrite (seq_app' _ P0), fold_left_app, length_app, H.
   rewrite inlineSome_pos_app_r, inlineSome_pos_app_l by auto.
   repeat f_equal; lia.
 Qed.
@@ -4795,8 +4795,8 @@ Proof.
   destruct err1; [apply nth_error_In in Heqerr1; inv Heqerr1| reflexivity].
   unfold listRfMethods, eachRfMethodInliners, inlineSingle_pos, apply_nth in *; simpl.
   destruct (le_lt_dec (length (getRegFileMethods a)) n).
-  - repeat rewrite nth_error_app2; try rewrite map_length; auto.
-  - repeat rewrite nth_error_app1; try rewrite map_length; auto.
+  - repeat rewrite nth_error_app2; try rewrite length_map; auto.
+  - repeat rewrite nth_error_app1; try rewrite length_map; auto.
     remember (nth_error _ _) as err0; remember (nth_error (map _ _) _) as err1.
     symmetry in Heqerr0, Heqerr1.
     destruct err0.
@@ -4822,9 +4822,9 @@ Proof.
   - induction reads; simpl; auto.
     rewrite <- IHreads.
     do 2 apply f_equal.
-    do 2 rewrite map_length; reflexivity.
+    do 2 rewrite length_map; reflexivity.
   - apply f_equal.
-    destruct isAddr; simpl; repeat rewrite app_length; repeat rewrite map_length; reflexivity.
+    destruct isAddr; simpl; repeat rewrite length_app; repeat rewrite length_map; reflexivity.
 Qed.
 
 Lemma inlineEach_SingleRf_inlineEeach (rf : RegFileBase) :
@@ -4865,9 +4865,9 @@ Proof.
       remember (nth_error ((map _ _ ) ++ (map _ _ )) _) as err1.
       symmetry in Heqerr0, Heqerr1.
       destruct (le_lt_dec (length reads) n), isAddr.
-      * rewrite nth_error_app2 in Heqerr1; rewrite map_length in *;[| assumption].
+      * rewrite nth_error_app2 in Heqerr1; rewrite length_map in *;[| assumption].
         rewrite map_app in Heqerr0.
-        rewrite nth_error_app2 in Heqerr0; repeat rewrite map_length in *; [| assumption].
+        rewrite nth_error_app2 in Heqerr0; repeat rewrite length_map in *; [| assumption].
         destruct err1.
         -- rewrite nth_error_map_iff in Heqerr1; dest.
            rewrite <- H1.
@@ -4886,9 +4886,9 @@ Proof.
            rewrite nth_error_map_iff in Heqerr0; dest.
            rewrite nth_error_map_iff in H0; dest.
            rewrite H0 in Heqerr1; discriminate.
-      * rewrite nth_error_app2 in Heqerr1; rewrite map_length in *;[| assumption].
+      * rewrite nth_error_app2 in Heqerr1; rewrite length_map in *;[| assumption].
         rewrite map_app in Heqerr0.
-        rewrite nth_error_app2 in Heqerr0; repeat rewrite map_length in *; [| assumption].
+        rewrite nth_error_app2 in Heqerr0; repeat rewrite length_map in *; [| assumption].
         destruct err1.
         -- rewrite nth_error_map_iff in Heqerr1; dest.
            rewrite <- H1.
@@ -4907,9 +4907,9 @@ Proof.
            rewrite nth_error_map_iff in Heqerr0; dest.
            rewrite nth_error_map_iff in H0; dest.
            rewrite H0 in Heqerr1; discriminate.
-      * rewrite nth_error_app1 in Heqerr1;[| rewrite map_length in *; assumption].
+      * rewrite nth_error_app1 in Heqerr1;[| rewrite length_map in *; assumption].
         rewrite map_app in Heqerr0.
-        rewrite nth_error_app1 in Heqerr0; repeat rewrite map_length in *; [| assumption].
+        rewrite nth_error_app1 in Heqerr0; repeat rewrite length_map in *; [| assumption].
         destruct err1.
         -- rewrite nth_error_map_iff in Heqerr1; dest.
            rewrite <- H1.
@@ -4928,9 +4928,9 @@ Proof.
            rewrite nth_error_map_iff in Heqerr0; dest.
            rewrite nth_error_map_iff in H0; dest.
            rewrite H0 in Heqerr1; discriminate.
-      * rewrite nth_error_app1 in Heqerr1;[| rewrite map_length in *; assumption].
+      * rewrite nth_error_app1 in Heqerr1;[| rewrite length_map in *; assumption].
         rewrite map_app in Heqerr0.
-        rewrite nth_error_app1 in Heqerr0; repeat rewrite map_length in *; [| assumption].
+        rewrite nth_error_app1 in Heqerr0; repeat rewrite length_map in *; [| assumption].
         destruct err1.
         -- rewrite nth_error_map_iff in Heqerr1; dest.
            rewrite <- H1.
@@ -5003,8 +5003,8 @@ Proof.
       remember (nth_error (map _ (if isAddr then _ else _ )) _) as err1.
       symmetry in Heqerr0, Heqerr1.
       destruct (le_lt_dec (length reads) n), isAddr; rewrite map_app in *.
-      * rewrite nth_error_app2 in Heqerr1; repeat rewrite map_length in *;[| assumption].
-        rewrite nth_error_app2 in Heqerr0; repeat rewrite map_length in *; [| assumption].
+      * rewrite nth_error_app2 in Heqerr1; repeat rewrite length_map in *;[| assumption].
+        rewrite nth_error_app2 in Heqerr0; repeat rewrite length_map in *; [| assumption].
         destruct err1.
         -- rewrite nth_error_map_iff in Heqerr1; dest.
            rewrite <- H1.
@@ -5037,8 +5037,8 @@ Proof.
            rewrite nth_error_map_iff in Heqerr0; dest.
            rewrite <- nth_error_map_None_iff in Heqerr1.
            rewrite H0 in Heqerr1; discriminate.
-      * rewrite nth_error_app2 in Heqerr1; repeat rewrite map_length in *;[| assumption].
-        rewrite nth_error_app2 in Heqerr0; rewrite map_length in *; [| assumption].
+      * rewrite nth_error_app2 in Heqerr1; repeat rewrite length_map in *;[| assumption].
+        rewrite nth_error_app2 in Heqerr0; rewrite length_map in *; [| assumption].
         destruct err1.
         -- rewrite nth_error_map_iff in Heqerr1; dest.
            rewrite <- H1.
@@ -5070,8 +5070,8 @@ Proof.
            rewrite nth_error_map_iff in Heqerr0; dest.
            rewrite <- nth_error_map_None_iff in Heqerr1; dest.
            rewrite H0 in Heqerr1; discriminate.
-      * rewrite nth_error_app1 in Heqerr1;[| repeat rewrite map_length in *; assumption].
-        rewrite nth_error_app1 in Heqerr0; repeat rewrite map_length in *; [| assumption].
+      * rewrite nth_error_app1 in Heqerr1;[| repeat rewrite length_map in *; assumption].
+        rewrite nth_error_app1 in Heqerr0; repeat rewrite length_map in *; [| assumption].
         destruct err1.
         -- rewrite nth_error_map_iff in Heqerr1; dest.
            rewrite <- H1.
@@ -5103,8 +5103,8 @@ Proof.
            rewrite nth_error_map_iff in Heqerr0; dest.
            rewrite <- nth_error_map_None_iff in Heqerr1.
            rewrite H0 in Heqerr1; discriminate.
-      * rewrite nth_error_app1 in Heqerr1;[| repeat rewrite map_length in *; assumption].
-        rewrite nth_error_app1 in Heqerr0; repeat rewrite map_length in *; [| assumption].
+      * rewrite nth_error_app1 in Heqerr1;[| repeat rewrite length_map in *; assumption].
+        rewrite nth_error_app1 in Heqerr0; repeat rewrite length_map in *; [| assumption].
         destruct err1.
         -- rewrite nth_error_map_iff in Heqerr1; dest.
            rewrite <- H1.
@@ -5151,14 +5151,14 @@ Proof.
   - unfold eachRfMethodInliners, EeachRfMethodInliners in *.
     destruct (le_lt_dec (length (getRegFileMethods a)) n).
     + unfold apply_nth in *; simpl in *.
-      rewrite nth_error_app2 in H; try rewrite map_length in *; auto.
+      rewrite nth_error_app2 in H; try rewrite length_map in *; auto.
       rewrite app_comm_cons; rewrite nth_error_app2.
       * fold (EgetRegFileMapMethods type k a).
         rewrite EgetRegFileMapMethods_getRegFileMethods_len.
         apply IHlrf; auto.
       * erewrite <-EgetRegFileMapMethods_getRegFileMethods_len in l; eauto.
     + unfold apply_nth in *; simpl in *.
-      rewrite nth_error_app1 in H; try rewrite map_length in *; auto.
+      rewrite nth_error_app1 in H; try rewrite length_map in *; auto.
       rewrite app_comm_cons; rewrite nth_error_app1.
       * eapply inlineEach_SingleRf_inlineEeach.
         assumption.
@@ -5178,14 +5178,14 @@ Proof.
   - unfold eachRfMethodInliners, EeachRfMethodInliners in *.
     destruct (le_lt_dec (length (getRegFileMethods a)) n).
     + unfold apply_nth in *; simpl in *.
-      rewrite nth_error_app2; try rewrite map_length in *; auto.
+      rewrite nth_error_app2; try rewrite length_map in *; auto.
       rewrite app_comm_cons, nth_error_app2 in H.
       * fold (EgetRegFileMapMethods type k a) in H.
         rewrite EgetRegFileMapMethods_getRegFileMethods_len in H.
         apply IHlrf; auto.
       * erewrite <- EgetRegFileMapMethods_getRegFileMethods_len in l; eauto.
     + unfold apply_nth in *; simpl in *.
-      rewrite nth_error_app1; try rewrite map_length in *; auto.
+      rewrite nth_error_app1; try rewrite length_map in *; auto.
       rewrite app_comm_cons, nth_error_app1 in H.
       * eapply inlineEeach_SingleRf_inlineEach.
         assumption.
@@ -5212,12 +5212,12 @@ Proof.
     + remember (nth_error _ _) as err0.
       symmetry in Heqerr0.
       destruct (le_lt_dec (length reads) n).
-      * rewrite nth_error_app2 in Heqerr0; rewrite map_length in *; [| assumption].
+      * rewrite nth_error_app2 in Heqerr0; rewrite length_map in *; [| assumption].
         destruct err0; eauto.
         rewrite nth_error_map_iff in Heqerr0; dest.
         rewrite <- H2 in *.
         eapply inlineSyncRes_congruence; simpl in *; eauto using nth_error_In.
-      * rewrite nth_error_app1 in Heqerr0;[| rewrite map_length; assumption].
+      * rewrite nth_error_app1 in Heqerr0;[| rewrite length_map; assumption].
         destruct err0; eauto.
         rewrite nth_error_map_iff in Heqerr0; dest.
         rewrite <- H2 in *.
@@ -5385,13 +5385,13 @@ Proof.
       repeat rewrite <- flat_map_concat_map.
       induction lrf; auto.
       unfold getRegFileMethods; destruct a; simpl.
-      repeat rewrite app_length; rewrite <- IHlrf; clear.
+      repeat rewrite length_app; rewrite <- IHlrf; clear.
       apply f_equal; apply f_equal2; auto.
       destruct rfRead.
       - unfold readRegFile.
-        repeat rewrite map_length; reflexivity.
-      - unfold readSyncRegFile; destruct isAddr; repeat rewrite app_length;
-          repeat rewrite map_length; reflexivity. }
+        repeat rewrite length_map; reflexivity.
+      - unfold readSyncRegFile; destruct isAddr; repeat rewrite length_app;
+          repeat rewrite length_map; reflexivity. }
     setoid_rewrite H1.
     assumption.
 Qed.

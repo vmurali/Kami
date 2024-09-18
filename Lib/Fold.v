@@ -115,7 +115,7 @@ Section UnApp.
       symmetry in UA.
       apply unapp_app in UA.
       subst m.
-      rewrite app_length in *.
+      rewrite length_app in *.
       lia. 
     }
     destruct n as [| n']; destruct m as [| x xs].
@@ -223,7 +223,7 @@ Proof.
   intros.
   eapply unapp_map with (f := f) in H.
   unfold unapp_half.
-  rewrite map_length.
+  rewrite length_map.
   auto.
 Qed.
 

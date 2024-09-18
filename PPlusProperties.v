@@ -9407,7 +9407,7 @@ Proof.
     + intros; apply HNeverCall; left; reflexivity.
   - exfalso.
     symmetry in Heqerr0.
-    rewrite nth_error_None, app_length in *; lia.
+    rewrite nth_error_None, length_app in *; lia.
 Qed.    
 
 Lemma inlineAll_Meths_RegFile_flat2 :
@@ -9430,7 +9430,7 @@ Proof.
     rewrite <- map_id; apply map_ext_in; intros.
     apply NeverCall_inline_invar; eauto.
   - exfalso.
-    symmetry in Heqerr0; rewrite nth_error_None, app_length in *.
+    symmetry in Heqerr0; rewrite nth_error_None, length_app in *.
     specialize (nth_error_Some l' (n - length l)) as P0.
     rewrite HSome in *.
     assert (n - length l < length l') as P1.
@@ -9441,14 +9441,14 @@ Qed.
 Lemma inlineSingle_Meths_pos_length l n :
   length (inlineSingle_Meths_pos l n) = length l.
 Proof.
-  setoid_rewrite <- (map_length fst).
+  setoid_rewrite <- (length_map fst).
   rewrite <- SameKeys_inlineSingle_Meth_pos; reflexivity.
 Qed.
 
 Lemma inlineSome_Meths_pos_length l xs :
   length (fold_left inlineSingle_Meths_pos xs l) = length l.
 Proof.
-  setoid_rewrite <- (map_length fst).
+  setoid_rewrite <- (length_map fst).
   rewrite <- SameKeys_inlineSome_Meths; reflexivity.
 Qed.
 
@@ -9525,8 +9525,8 @@ Lemma inlineAll_Rules_NoCalls :
 Proof.
   unfold inlineAll_Rules; intros.
   assert (length l <= length (l ++ l')) as P0.
-  { rewrite app_length; lia. }
-  rewrite (seq_app' _ P0), app_length, (Nat.add_comm (Datatypes.length l) (Datatypes.length l')),
+  { rewrite length_app; lia. }
+  rewrite (seq_app' _ P0), length_app, (Nat.add_comm (Datatypes.length l) (Datatypes.length l')),
     Nat.add_sub, plus_O_n, fold_left_app, inlineSome_Rules_app_r at 1; [setoid_rewrite inlineSome_Rules_app_l|].
   - rewrite Reduce_seq, Nat.sub_diag; reflexivity.
   - intros; rewrite in_seq in *; lia.
@@ -9536,7 +9536,7 @@ Qed.
 Lemma inlineAll_Meths_same_len l :
   length (inlineAll_Meths l) = length l.
 Proof.
-  setoid_rewrite <- (map_length fst); rewrite <- SameKeys_inlineAll_Meths; reflexivity.
+  setoid_rewrite <- (length_map fst); rewrite <- SameKeys_inlineAll_Meths; reflexivity.
 Qed.
 
 Lemma NoSelfCall_nil (m : BaseModule) :

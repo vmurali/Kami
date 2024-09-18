@@ -685,7 +685,7 @@ Lemma nth_error_map_None_iff :
   forall {A B : Type} (f : A -> B) (l : list A) (n : nat),
     nth_error l n = None <-> nth_error (map f l) n = None.
 Proof.
-  intros; split; intros; rewrite nth_error_None, map_length in *; assumption.
+  intros; split; intros; rewrite nth_error_None, length_map in *; assumption.
 Qed.
 
 Lemma nth_error_map_Some1 :
@@ -703,7 +703,7 @@ Proof.
     rewrite nth_error_None in Heqerr0.
     enough (Some b <> None).
     { eapply H0; rewrite <- H.
-      rewrite nth_error_None, map_length; assumption. }
+      rewrite nth_error_None, length_map; assumption. }
     intro; discriminate.
 Qed.
 
@@ -1693,7 +1693,7 @@ Section SplitJoin.
       rewrite H in HUpdRegs.
       apply Forall2_app_eq_length in HUpdRegs; auto; dest.
       repeat split; auto; constructor; auto; subst; rewrite ?filter_app in *.
-      rewrite map_length in *.
+      rewrite length_map in *.
       congruence.
     - pose proof HStep as HStep'.
       apply SplitStep in HStep.
@@ -4551,7 +4551,7 @@ Section ModularSubstitution.
     exists (map (fun x => fst x ++ snd x) (List.combine x2 x0)).
     pose proof H9 as sth1.
     pose proof H7 as sth2.
-    rewrite map_length in H9, H7.
+    rewrite length_map in H9, H7.
     rewrite H9 in H7.
     rewrite mapProp_nthProp in H5.
     repeat split.
@@ -4662,7 +4662,7 @@ Section ModularSubstitution.
         specialize (H15 _ _ H24 H23).
         rewrite H22, H21 in *.
         assumption.
-    - rewrite map_length.
+    - rewrite length_map.
       rewrite length_combine_cond; congruence.
     - unfold nthProp, nthProp2 in *; intros.
       specialize (H10 i); specialize (H8 i); specialize (H5 i).

@@ -1293,7 +1293,7 @@ Section utila.
       n = length (array_to_list xs).
     Proof.
       intros; unfold array_to_list, array_to_list'.
-      rewrite map_length, getFins_length; auto.
+      rewrite length_map, getFins_length; auto.
     Qed.
 
     Lemma array_to_list_id : forall (xs: list (A @# type)),
@@ -1454,7 +1454,7 @@ Corollary length_tagFrom {A : Type} (l : list A):
 Proof.
   intros.
   rewrite <- (snd_tagFrom l n) at 2.
-  rewrite map_length; reflexivity.
+  rewrite length_map; reflexivity.
 Qed.
 
 Lemma tagFrom_n {A : Type} (l : list A):
