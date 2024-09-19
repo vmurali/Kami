@@ -1,12 +1,324 @@
-Require Import String Coq.Lists.List Eqdep Bool Coq.ZArith.Zdiv Lia Coq.Vectors.Fin.
+Require Import String Ascii Coq.Lists.List Eqdep Bool Coq.ZArith.Zdiv Lia Coq.Vectors.Fin.
 Require Import Coq.NArith.NArith.
 Require Import Arith_base.
 Require Import Arith Coq.ZArith.Znat Psatz.
+Require Import Coq.Sorting.Mergesort Coq.Structures.Orders.
+Require Import Kami.Lib.Word.
 
 Import ListNotations.
 
 Set Implicit Arguments.
 Set Asymmetric Patterns.
+
+Module Type ToNat.
+  Parameter t: Type.
+  Parameter toNat: t -> nat.
+End ToNat.
+
+Module NatOrder (toNat: ToNat) <: TotalLeBool.
+  Definition t := toNat.t.
+  Definition leb (x y: t) := Nat.leb (toNat.toNat x) (toNat.toNat y).
+  Theorem leb_total : forall a1 a2, leb a1 a2 = true \/ leb a2 a1 = true.
+  Proof.
+    unfold leb; intros.
+    rewrite ?Nat.leb_le.
+    lia.
+  Qed.
+End NatOrder.
+
+Module Interval <: ToNat.
+  Definition t := (nat * nat)%type.
+  Definition toNat (x: t) := fst x.
+End Interval.
+
+Module IntervalOrder := NatOrder Interval.
+Module IntervalSort := Sort IntervalOrder.
+
+Section IntervalList.
+  Variable intervals: list (nat * nat).
+  Let sorted := IntervalSort.sort intervals.
+
+  Fixpoint getLastDisjointContiguous (start: nat) ls : option nat:=
+    match ls with
+    | nil => Some start
+    | (s, l) :: xs => if (s =? start) && negb (l =? 0)
+                      then getLastDisjointContiguous (s + l) xs
+                      else None
+    end.
+
+  Definition getDisjointContiguous : option (nat * nat) :=
+    match sorted with
+    | nil => Some (0, 0)
+    | (s, l) :: xs => match getLastDisjointContiguous s sorted with
+                      | Some final => Some (s, final)
+                      | None => None
+                      end
+    end.
+End IntervalList.
+
+Module SigWord <: ToNat.
+  Definition t := {x : (nat * nat) & word (snd x) }.
+  Definition toNat (x: t) := fst (projT1 x).
+End SigWord.
+
+Module SigWordOrder := NatOrder SigWord.
+Module SigWordSort := Sort SigWordOrder.
+
+Module SigTriple <: ToNat.
+  Definition t := (nat * (nat * nat))%type.
+  Definition toNat (x: t) := fst x.
+End SigTriple.
+
+Module SigTripleOrder := NatOrder SigTriple.
+Module SigTripleSort := Sort SigTripleOrder.
+
+
+Definition wordToListBool n (w: word n) := map (fun i => Z.testbit (wordVal _ w) (Z.of_nat i)) (seq 0 n).
+
+Fixpoint listBoolToString (bs: list bool) :=
+  match bs with
+  | nil => EmptyString
+  | b :: bs' => String (if b then "1"%char else "0"%char) (listBoolToString bs')
+  end.
+
+Fixpoint combineWords n (ls: list (word n)): word (length ls * n) :=
+  match ls return word (length ls * n) with
+  | nil => WO
+  | x :: xs => wconcat (combineWords xs) x
+  end.
+
+Fixpoint wordCombiner (ls: list {x: nat * nat & word (snd x)}) :=
+  match ls return word (fold_right (fun new sum => sum + snd (projT1 new)) 0 ls) with
+  | nil => WO
+  | x :: xs => wcombine (wordCombiner xs) (projT2 x)
+  end.
+
+Definition extractWord n (w: word n) (start width: nat): word width :=
+  @truncMsb width (start + width) (@truncLsb (start + width) _ w).
+
+Section InsertListIntoFinMap.
+  Variable A: Type.
+  Variable sz: nat.
+  Variable arr: Fin.t sz -> A.
+  Variable ls: list A.
+  Variable start: nat.
+  
+  Definition insertListIntoFinMap (iFin: Fin.t sz) :=
+    let i := FinFun.Fin2Restrict.f2n iFin in
+    if (start <=? i) && (i <? start + (length ls))
+    then nth (i - start) ls (arr iFin)
+    else arr iFin.
+End InsertListIntoFinMap.
+
+Section RmStringPrefix.
+  Fixpoint rmStringPrefix n (s: string) :=
+    match n with
+    | 0 => s
+    | S m => match s with
+             | String c s' => rmStringPrefix m s'
+             | EmptyString => EmptyString
+             end
+    end.
+
+  Theorem rmAppend (p s: string): rmStringPrefix (String.length p) (p ++ s)%string = s.
+  Proof.
+    induction p; auto.
+  Qed.
+End RmStringPrefix.
+
+Fixpoint string_rev (ls: string) :=
+  match ls with
+  | EmptyString => EmptyString
+  | String x xs => append (string_rev xs) (String x EmptyString)
+  end.
+
+Definition printWordAsBits n (ws: list (word n)) := string_rev (listBoolToString (wordToListBool (combineWords ws))).
+
+Section EvalProp.
+  Variable A: Type.
+  Variable R: A -> A -> bool.
+
+  Fixpoint NoDupEval (ls: list A) :=
+    match ls with
+    | nil => true
+    | x :: xs => andb (negb (existsb (R x) xs)) (NoDupEval xs)
+    end.
+
+  Section NoDupEvalCorrect.
+    Variable RIsDec: forall a1 a2, R a1 a2 = true <-> a1 = a2.
+
+    Lemma NoDupEvalCorrect1 ls: NoDupEval ls = true -> NoDup ls.
+    Proof.
+      induction ls; intros; constructor;
+        simpl in H;
+        rewrite andb_true_iff in H;
+        destruct H.
+      - intro.
+        rewrite <- eq_true_not_negb_iff in H.
+        rewrite existsb_exists in H.
+        assert (rhs: exists x, In x ls /\ (R a) x = true).
+        { exists a.
+          constructor; auto.
+          rewrite (RIsDec a a); auto.
+        }
+        apply H; auto.
+      - apply IHls; auto.
+    Qed.
+
+    Lemma NoDupEvalCorrect2 ls: NoDup ls -> NoDupEval ls = true.
+    Proof.
+      induction 1; auto.
+      simpl.
+      rewrite andb_true_iff.
+      constructor; [|auto].
+      rewrite <- eq_true_not_negb_iff.
+      rewrite existsb_exists.
+      intro.
+      destruct H1 as [ x0 [in1 r1]].
+      rewrite RIsDec in r1; subst.
+      apply H; auto.
+    Qed.
+
+    Theorem NoDupEvalCorrect ls: NoDup ls <-> NoDupEval ls = true.
+    Proof.
+      constructor.
+      - apply NoDupEvalCorrect2.
+      - apply NoDupEvalCorrect1.
+    Qed.
+  End NoDupEvalCorrect.
+  
+  Fixpoint ForallOrdPairsEval (ls: list A) :=
+    match ls with
+    | nil => true
+    | x :: xs => andb (forallb (R x) xs) (ForallOrdPairsEval xs)
+    end.
+
+  Lemma ForallOrdPairsEvalCorrect1 ls: ForallOrdPairsEval ls = true -> ForallOrdPairs (fun x y => R x y = true) ls.
+  Proof.
+    induction ls; simpl; intros; auto.
+    - constructor.
+    - apply andb_prop in H.
+      constructor.
+      + rewrite Forall_forall.
+        apply forallb_forall.
+        tauto.
+      + apply IHls.
+        tauto.
+  Qed.
+
+  Lemma ForallOrdPairsEvalCorrect2 ls: ForallOrdPairs (fun x y => R x y = true) ls -> ForallOrdPairsEval ls = true.
+  Proof.
+    induction ls; simpl; intros; auto.
+    apply andb_true_intro.
+    remember (a :: ls) as ls'.
+    destruct H.
+    - inversion Heqls'.
+    - inversion Heqls'; subst; clear Heqls'.
+      rewrite forallb_forall.
+      rewrite <- Forall_forall.
+      tauto.
+  Qed.
+
+  Theorem ForallOrdPairsEvalCorrect ls: ForallOrdPairs (fun x y => R x y = true) ls <-> ForallOrdPairsEval ls = true.
+  Proof.
+    split.
+    - apply ForallOrdPairsEvalCorrect2.
+    - apply ForallOrdPairsEvalCorrect1.
+  Qed.
+End EvalProp.
+  
+Section NoDupSplit.
+  Variable n: nat.
+  Lemma NotInSplit x:
+    forall ls,
+      Forall (fun y => rmStringPrefix n x <> rmStringPrefix n y \/ substring 0 n x <> substring 0 n y) ls ->
+      ~ In x ls.
+  Proof.
+    induction ls; simpl; auto; intros.
+    remember (a :: ls) as sth1.
+    destruct H.
+    - discriminate.
+    - inversion Heqsth1; subst; clear Heqsth1.
+      specialize (IHls H0).
+      intro.
+      destruct H1; [|tauto].
+      subst.
+      destruct H; tauto.
+  Qed.
+
+  Theorem NoDupSplit:
+    forall (ls: list string),
+      (ForallOrdPairs (fun x y => rmStringPrefix n x <> rmStringPrefix n y \/
+                                    substring 0 n x <> substring 0 n y) ls) ->
+      NoDup ls.
+  Proof.
+    induction ls; simpl; auto; intros.
+    - constructor.
+    - remember (a :: ls) as sth3.
+      destruct H; [constructor|].
+      inversion Heqsth3; subst; clear Heqsth3.
+      specialize (IHls H0).
+      constructor; [|assumption].
+      apply NotInSplit.
+      assumption.
+  Qed.
+
+  Lemma NotInSplit_comp x:
+    forall ls,
+      Forall (fun y => rmStringPrefix n x <> rmStringPrefix n y \/
+                         String.eqb (substring 0 n x) (substring 0 n y) = false) ls ->
+      ~ In x ls.
+  Proof.
+    induction ls; simpl; auto; intros.
+    remember (a :: ls) as sth1.
+    destruct H.
+    - discriminate.
+    - inversion Heqsth1; subst; clear Heqsth1.
+      specialize (IHls H0).
+      intro.
+      destruct H1; [|tauto].
+      subst.
+      rewrite String.eqb_neq in H.
+      destruct H; tauto.
+  Qed.
+
+  Theorem NoDupSplit_comp:
+    forall (ls: list string),
+      (ForallOrdPairs (fun x y => rmStringPrefix n x <> rmStringPrefix n y \/
+                                    String.eqb (substring 0 n x) (substring 0 n y) = false) ls) ->
+      NoDup ls.
+  Proof.
+    induction ls; simpl; auto; intros.
+    - constructor.
+    - remember (a :: ls) as sth3.
+      destruct H; [constructor|].
+      inversion Heqsth3; subst; clear Heqsth3.
+      specialize (IHls H0).
+      constructor; [|assumption].
+      apply NotInSplit_comp.
+      assumption.
+  Qed.
+End NoDupSplit.
+
+Section ExistsForall.
+  Theorem notExists_forallNot A (P: A -> Prop) : ~ (exists a, P a) -> (forall a, ~ P a).
+  Proof.
+    intros.
+    intro.
+    assert (exists a, P a) by (exists a; auto).
+    tauto.
+  Qed.
+
+  Theorem forallNot_notExists A (P: A -> Prop) : (forall a, ~ P a) -> ~ (exists a, P a).
+  Proof.
+    intros.
+    intro.
+    destruct H0.
+    specialize (H x).
+    tauto.
+  Qed.
+End ExistsForall.
+
 
 Section NubBy.
   Variable A : Type.
@@ -40,12 +352,6 @@ Section Tree.
          end) xs
     end.
 End Tree.
-
-Fixpoint string_rev (ls: string) :=
-  match ls with
-  | EmptyString => EmptyString
-  | String x xs => append (string_rev xs) (String x EmptyString)
-  end.
 
 (* Definition in_decb{X}(eqb : X -> X -> bool) : X -> list X -> bool :=
   fun x => existsb (eqb x).
@@ -153,6 +459,38 @@ Definition fin_case n x :
 Ltac fin_dep_destruct v :=
   pattern v; apply fin_case; clear v; intros.
 
+Section nth_Fin_nth_error.
+  Variable A: Type.
+
+  Lemma nth_Fin'_nth_error:
+    forall n i (xs: list A) (len_eq: n = length xs),
+      let i' := proj1_sig (Fin.to_nat i) in
+      Some (nth_Fin' xs len_eq i) = nth_error xs i'.
+  Proof.
+    induction n; cbn; intros *; try easy.
+    destruct xs; cbn in *; try easy.
+    inversion len_eq.
+    destruct i eqn:?; cbn; auto.
+    destruct (Fin.to_nat _) eqn:?; cbn.
+    assert (n0 = n); subst.
+    { inversion len_eq; subst; auto. }
+    specialize (IHn t xs (f_equal pred len_eq)).
+    rewrite Heqs in IHn; cbn in IHn; auto.
+  Qed.
+  
+  Lemma nth_Fin_nth_error:
+    forall (xs: list A) i,
+      let i' := proj1_sig (Fin.to_nat i) in
+      Some (nth_Fin xs i) = nth_error xs i'.
+  Proof.
+    cbn; intros.
+    rewrite <- (nth_Fin'_nth_error _ _ eq_refl).
+    unfold nth_Fin'; repeat f_equal.
+    clear; induction i; cbn; auto.
+    rewrite <- IHi; auto.
+  Qed.
+ 
+End nth_Fin_nth_error.
 
 Lemma Fin_cast_lemma : forall m n i (p q : m = n),
   Fin.cast i p = Fin.cast i q.
@@ -298,36 +636,81 @@ Section nth_Fin_map2.
   Defined.
 End nth_Fin_map2.
 
+Section FinTag.
+  Variable A: Type.
+  Fixpoint finTag (ls: list A): list (Fin.t (length ls) * A) :=
+    match ls return list (Fin.t (length ls) * A) with
+    | nil => nil
+    | x :: xs => (Fin.F1, x) :: map (fun y => (Fin.FS (fst y), snd y)) (finTag xs)
+    end.
+
+  Section FinTagMap.
+    Variable B: Type.
+    Variable f: A -> B.
+    Fixpoint finTagMap (ls: list A): list (Fin.t (length (map f ls)) * A) :=
+      match ls return list (Fin.t (length (map f ls)) * A) with
+      | nil => nil
+      | x :: xs => (Fin.F1, x) ::
+                     map (fun y => (Fin.FS (fst y), snd y)) (finTagMap xs)
+      end.
+
+    Fixpoint finTagMapPf2 (ls: list A):
+      list {x: (Fin.t (length (map f ls)) * A) & nth_Fin (map f ls) (fst x) = f (snd x)} :=
+      match ls return list {x: (Fin.t (length (map f ls)) * A) & nth_Fin (map f ls) (fst x) = f (snd x)} with
+      | nil => nil
+      | x :: xs => existT _ (Fin.F1, x) eq_refl ::
+                     map (fun y => existT (fun z =>
+                                             nth_Fin (map f (x :: xs)) (fst z) =
+                                               f (snd z)) (Fin.FS (fst (projT1 y)), snd (projT1 y))
+                                     (projT2 y)) (finTagMapPf2 xs)
+      end.
+
+    Record FinTagMapPf ls :=
+      { finTagMapFin: Fin.t (length (map f ls));
+        finTagMapVal: A;
+        finTagMapPrf: nth_Fin (map f ls) finTagMapFin = f finTagMapVal }.
+    
+    Fixpoint finTagMapPf (ls: list A): list (FinTagMapPf ls) :=
+      match ls return list (FinTagMapPf ls) with
+      | nil => nil
+      | x :: xs => Build_FinTagMapPf (x :: xs) Fin.F1 eq_refl ::
+                     map (fun y => Build_FinTagMapPf (x :: xs) (Fin.FS (finTagMapFin y)) (finTagMapPrf y))
+                     (finTagMapPf xs)
+      end.
+
+  End FinTagMap.
+End FinTag.
+
 Section Fin.
 
-Fixpoint Fin_forallb{n} : (Fin.t n -> bool) -> bool :=
-  match n return (Fin.t n -> bool) -> bool with
-  | 0 => fun _ => true
-  | S m => fun p => p Fin.F1 && Fin_forallb (fun i => p (Fin.FS i))
-  end.
+  Fixpoint Fin_forallb{n} : (Fin.t n -> bool) -> bool :=
+    match n return (Fin.t n -> bool) -> bool with
+    | 0 => fun _ => true
+    | S m => fun p => p Fin.F1 && Fin_forallb (fun i => p (Fin.FS i))
+    end.
 
-Lemma Fin_forallb_correct{n} : forall p : Fin.t n -> bool,
-  Fin_forallb p = true <-> forall i, p i = true.
-Proof.
-  induction n; intros; split; intros.
-  apply (Fin.case0 (fun i => p i = true)).
-  reflexivity.
-  simpl in H.
-  fin_dep_destruct i.
-  destruct (p Fin.F1); [auto|discriminate].
-  apply (IHn (fun j => p (Fin.FS j))).
-  destruct (p Fin.F1); [auto|discriminate].
-  simpl.
-  apply andb_true_intro; split.
-  apply H.
-  apply IHn.
-  intro; apply H.
-Qed.
+  Lemma Fin_forallb_correct{n} : forall p : Fin.t n -> bool,
+      Fin_forallb p = true <-> forall i, p i = true.
+  Proof.
+    induction n; intros; split; intros.
+    apply (Fin.case0 (fun i => p i = true)).
+    reflexivity.
+    simpl in H.
+    fin_dep_destruct i.
+    destruct (p Fin.F1); [auto|discriminate].
+    apply (IHn (fun j => p (Fin.FS j))).
+    destruct (p Fin.F1); [auto|discriminate].
+    simpl.
+    apply andb_true_intro; split.
+    apply H.
+    apply IHn.
+    intro; apply H.
+  Qed.
 
-Definition Fin_cast : forall m n, Fin.t m -> m = n -> Fin.t n :=
-  fun m n i pf => match pf in _ = y return Fin.t y with
-                  | eq_refl => i
-                  end.
+  Definition Fin_cast : forall m n, Fin.t m -> m = n -> Fin.t n :=
+    fun m n i pf => match pf in _ = y return Fin.t y with
+                    | eq_refl => i
+                    end.
 
 End Fin.
 
@@ -1016,6 +1399,13 @@ Definition getBool A B (x: {A} + {B}) : bool :=
   | left _ => true
   | right _ => false
   end.
+
+Theorem string_dec_eqb s1 s2: String.eqb s1 s2 = getBool (string_dec s1 s2).
+Proof.
+  destruct (string_dec s1 s2).
+  - rewrite String.eqb_eq; auto.
+  - rewrite String.eqb_neq; auto.
+Qed.
 
 Section SubList_filter.
   Variable A B: Type.

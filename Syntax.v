@@ -720,6 +720,28 @@ Fixpoint getHidden m :=
   | HideMeth m' s => s :: getHidden m'
   end.
 
+Fixpoint convTypeToConst [k: Kind] : forall (t: type k), ConstT k :=
+  match k return type k -> ConstT k with
+  | Bool => fun b => ConstBool b
+  | Bit k => fun w => ConstBit w
+  | Struct n fk => fun fv => ConstStruct fk (fun i => convTypeToConst (fv i))
+  | Array n k => fun fv => ConstArray (fun i => convTypeToConst (fv i))
+  end.
+
+Definition convConstArrayToFunConst [n: nat] [k: Kind] (v: Fin.t n -> type k): Fin.t n -> (ConstT k) :=
+  fun i => convTypeToConst (v i).
+
+
+Record RegInfo n := {
+    regAddr : word n;
+    regName : string }.
+
+Definition getAddrFromInfo (name: string) n (regs: list (RegInfo n)) :=
+  match find (fun x => String.eqb name (regName x)) regs with
+  | Some x => regAddr x
+  | None => wzero _
+  end.
+
 Section WfBaseMod.
 
   Variable ty : Kind -> Type.
