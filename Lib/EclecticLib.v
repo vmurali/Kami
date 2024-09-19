@@ -2336,15 +2336,15 @@ Lemma Nat_mod_factor a b c:
   (a mod (b * c)) mod b = a mod b.
 Proof.
   intros.
-  pose proof (Nat.mod_mul_r a _ _ H H0).
+  pose proof (Nat.Div0.mod_mul_r a b c).
   rewrite H1.
-  rewrite Nat.add_mod_idemp_l by auto.
-  rewrite Nat.add_mod by auto.
+  rewrite Nat.Div0.add_mod_idemp_l by auto.
+  rewrite Nat.Div0.add_mod by auto.
   assert (sth: b * ((a/b) mod c) = (a/b) mod c * b) by (apply Nat.mul_comm).
   rewrite sth.
-  rewrite Nat.mod_mul by auto.
+  rewrite Nat.Div0.mod_mul by auto.
   rewrite Nat.add_0_r.
-  rewrite Nat.mod_mod by auto.
+  rewrite Nat.Div0.mod_mod by auto.
   auto.
 Qed.
 
@@ -2365,7 +2365,7 @@ Proof.
   intros.
   assert (sth: a - b * c + b * c = a) by lia.
   rewrite <- sth at 2.
-  rewrite Nat.mod_add by lia.
+  rewrite Nat.Div0.mod_add by lia.
   auto.
 Qed.
 
@@ -2853,7 +2853,7 @@ Lemma mul_div_undo: forall i c,
     c * i / c = i.
 Proof.
   intros.
-  pose proof (Nat.div_mul_cancel_l i 1 c) as P.
+  pose proof (Nat.Div0.div_mul_cancel_l i 1 c) as P.
   rewrite Nat.div_1_r in P.
   rewrite Nat.mul_1_r in P.
   apply P; auto.
@@ -2863,8 +2863,8 @@ Lemma mod_add_r: forall a b,
     b <> 0 ->
     (a + b) mod b = a mod b.
 Proof.
-  intros. rewrite <- Nat.add_mod_idemp_r by lia.
-  rewrite Nat.mod_same by lia.
+  intros. rewrite <- Nat.Div0.add_mod_idemp_r by lia.
+  rewrite Nat.Div0.mod_same by lia.
   rewrite Nat.add_0_r.
   reflexivity.
 Qed.
@@ -2884,20 +2884,20 @@ Lemma div_mul_undo: forall a b,
     a / b * b = a.
 Proof.
   intros.
-  pose proof Nat.div_mul_cancel_l as A. specialize (A a 1 b).
+  pose proof Nat.Div0.div_mul_cancel_l as A. specialize (A a 1 b).
   replace (b * 1) with b in A by lia.
   rewrite Nat.div_1_r in A.
   rewrite Nat.mul_comm.
-  rewrite <- Nat.divide_div_mul_exact; try assumption.
+  rewrite <- Nat.Lcm0.divide_div_mul_exact; try assumption.
   - apply A; congruence.
-  - apply Nat.mod_divide; assumption.
+  - apply Nat.Lcm0.mod_divide; assumption.
 Qed.
 
 Lemma Smod2_1: forall k, S k mod 2 = 1 -> k mod 2 = 0.
 Proof.
   intros k C.
   change (S k) with (1 + k) in C.
-  rewrite Nat.add_mod in C by congruence.
+  rewrite Nat.Div0.add_mod in C by congruence.
   pose proof (Nat.mod_upper_bound k 2).
   assert (k mod 2 = 0 \/ k mod 2 = 1) as E by lia.
   destruct E as [E | E]; [assumption|].
@@ -2912,7 +2912,7 @@ Proof.
   intros. assert (m = 0 \/ m <> 0) as C by lia. destruct C as [C | C].
   - subst; simpl in *; lia.
   - assert (a - b = 0 \/ b < a) as D by lia. destruct D as [D | D].
-    + rewrite D. apply Nat.mod_0_l. assumption.
+    + rewrite D. apply Nat.Div0.mod_0_l.
     + apply Nat2Z.inj. simpl.
       rewrite Nat2Z.inj_mod by assumption.
       rewrite Nat2Z.inj_sub by lia.
@@ -2928,7 +2928,7 @@ Lemma mul_div_exact: forall (a b: nat),
     a mod b = 0 ->
     b * (a / b) = a.
 Proof.
-  intros. edestruct Nat.div_exact as [_ P]; [eassumption|].
+  intros. edestruct Nat.Div0.div_exact as [_ P].
   specialize (P H0). symmetry. exact P.
 Qed.
 
@@ -3069,15 +3069,15 @@ Lemma mod_factor a b c:
   (a mod (b * c)) mod b = a mod b.
 Proof.
   intros.
-  pose proof (Nat.mod_mul_r a _ _ H H0).
+  pose proof (Nat.Div0.mod_mul_r a b c).
   rewrite H1.
-  rewrite Nat.add_mod_idemp_l by auto.
-  rewrite Nat.add_mod by auto.
+  rewrite Nat.Div0.add_mod_idemp_l by auto.
+  rewrite Nat.Div0.add_mod by auto.
   assert (sth: b * ((a/b) mod c) = (a/b) mod c * b) by (apply Nat.mul_comm).
   rewrite sth.
-  rewrite Nat.mod_mul by auto.
+  rewrite Nat.Div0.mod_mul by auto.
   rewrite Nat.add_0_r.
-  rewrite Nat.mod_mod by auto.
+  rewrite Nat.Div0.mod_mod by auto.
   auto.
 Qed.
 
@@ -3106,9 +3106,9 @@ Lemma mod_cancel_l:
     (x + a) mod n = (x + b) mod n.
 Proof.
   intros.
-  rewrite <- Nat.add_mod_idemp_r; auto.
+  rewrite <- Nat.Div0.add_mod_idemp_r; auto.
   rewrite H0.
-  rewrite Nat.add_mod_idemp_r; auto.
+  rewrite Nat.Div0.add_mod_idemp_r; auto.
 Qed.
 
 Lemma pow2_1_iff_0 n:
@@ -3371,7 +3371,7 @@ Proof.
       * rewrite <- plus_n_Sm, snoc_rapp.
         destruct (Nat.eq_dec (S (m + n) mod Datatypes.length (a :: l)) 0).
         -- rewrite e.
-           rewrite Nat.mod_divide in e; [|simpl; auto].
+           rewrite Nat.Lcm0.mod_divide in e.
            destruct e.
            assert (m + n = x * S (length l) - 1) as P0.
            { simpl in H0; lia. }
@@ -3396,12 +3396,12 @@ Proof.
            apply -> Nat.lt_succ_r in P0.
            destruct (le_lt_eq_dec _ _ P0) as [P1 | P1].
            ++ rewrite length_app, Nat.add_1_r, nth_error_app1; auto.
-              rewrite <- (Nat.add_1_l (m + n)), <- (Nat.add_mod_idemp_r 1 _); [|simpl; lia].
+              rewrite <- (Nat.add_1_l (m + n)), <- (@Nat.Div0.add_mod_idemp_r 1 _ _).
               rewrite (Nat.mod_small (1 + _)), (Nat.add_1_l ((m + n) mod _)); [simpl; auto|].
               cbn [length]; lia.
            ++ exfalso.
               apply n0; cbn[length].
-              rewrite <- Nat.add_1_l, <- Nat.add_mod_idemp_r, P1, Nat.add_1_l, Nat.mod_same; auto.
+              rewrite <- Nat.add_1_l, <- Nat.Div0.add_mod_idemp_r, P1, Nat.add_1_l, Nat.Div0.mod_same; auto.
       * rewrite snoc_rapp, length_app; simpl in *; lia.
 Qed.
 
@@ -3450,12 +3450,12 @@ Lemma Nat_mod_congr a b c :
   Nat.divide c (b - a).
 Proof.
   intros.
-  repeat (rewrite Nat.mod_eq in H1; auto).
+  repeat (rewrite Nat.Div0.mod_eq in H1; auto).
   exists (b / c - a / c).
   rewrite Nat.mul_sub_distr_r, Nat.mul_comm.
   rewrite (Nat.mul_comm _ c).
-  pose proof (Nat.mul_div_le a c H).
-  pose proof (Nat.mul_div_le b c H).
+  pose proof (Nat.Div0.mul_div_le a c).
+  pose proof (Nat.Div0.mul_div_le b c).
   lia.
 Qed.
 
@@ -3618,7 +3618,7 @@ Proof.
   destruct (le_lt_dec (length l) m).
   - repeat rewrite (proj2 (nth_error_None _ _)); auto; rewrite rotateLength; assumption.
   - rewrite (nth_error_rotate' n l l0), (nth_error_rotate' (n mod (length l)) l l0),
-    Nat.add_mod_idemp_r; auto; lia.
+    Nat.Div0.add_mod_idemp_r; auto; lia.
 Qed.    
 
 Lemma emptyb_true {A : Type} (l : list A) :
@@ -3959,7 +3959,7 @@ Section FifoProps.
           - rewrite Z.mod_small; try lia.
             rewrite Z2Nat.inj_sub; try lia.
             repeat rewrite pow2_of_nat.
-            rewrite sizePow2, Zmod_mod', Nat2Z.id, Nat.add_mod_idemp_r; try lia.
+            rewrite sizePow2, Zmod_mod', Nat2Z.id, Nat.Div0.add_mod_idemp_r; try lia.
             rewrite <- (Z2Nat.id enqP1) at 2; try lia.
             rewrite <- Nat2Z.inj_mod, Nat2Z.id; try lia.
             rewrite <- Z2Nat.inj_sub, <- Z2Nat.inj_add, Z.sub_add; lia.

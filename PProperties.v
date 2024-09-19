@@ -2047,8 +2047,8 @@ Qed.
     PStep m2 o l.
   Proof.
     intros.
-    apply (substitute_PStep); eauto using (wfMod m2).
-    apply (PStep_substitute) in H0; eauto using (wfMod m1).
+    apply (substitute_PStep); pose proof (wfMod m2) as wfModM2; eauto.
+    apply (PStep_substitute) in H0; pose proof (wfMod m1) as wfModM1; eauto.
     unfold flatten in *.
     assert (BaseModule_perm (getFlat m1) (getFlat m2));[inv H;unfold getFlat;constructor;auto|].
     apply (PStep_rewrite_base (getHidden m1) H1) in H0.

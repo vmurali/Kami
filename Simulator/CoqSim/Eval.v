@@ -7,7 +7,7 @@ Require Import Kami.Simulator.CoqSim.Misc.
 Require Import Kami.Simulator.CoqSim.TransparentProofs.
 Require Import Kami.Simulator.CoqSim.HaskellTypes.
 Import Kami.Simulator.CoqSim.HaskellTypes.Notations.
-Require Import Program.
+Require Import Coq.Program.Equality.
 
 Section Eval.
 

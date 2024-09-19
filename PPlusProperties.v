@@ -7625,7 +7625,7 @@ Proof.
   inv H0.
   assert (SubList (getHidden m) (map fst (getMethods (Build_BaseModuleWf (HWfBaseModule))))) as P2;
     [repeat intro; simpl; rewrite <- SameKeys_inlineAll_Meths; eapply WfMod_Hidden;
-     eauto using (wfMod m)|].
+     pose proof (wfMod m) as wfModM; eauto|].
   apply (removeHides_createHide_TraceInclusion P2 H).
 Qed.
 

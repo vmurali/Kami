@@ -9,10 +9,10 @@ Require Import Kami.Lib.EclecticLib.
 Import ListNotations.
 
 Module EqIndNotations.
-  Notation "A || B @ X 'by' E"
+  Notation "A |+ B @ X 'by' E"
     := (eq_ind_r (fun X => B) A E) (at level 40, left associativity).
 
-  Notation "A || B @ X 'by' <- H"
+  Notation "A |+ B @ X 'by' <- H"
     := (eq_ind_r (fun X => B) A (eq_sym H)) (at level 40, left associativity).
 End EqIndNotations.
 
@@ -812,7 +812,7 @@ Section utila.
                (fun H : [[utila_many [] ]] = true
                  => let H0
                       :  false = true
-                      := H || X = true  @X by <- utila_many_nil in
+                      := H |+ X = true  @X by <- utila_many_nil in
                     False_ind _ (diff_false_true H0))
                (fun y0 ys
                  (F : [[utila_many ys]] = true -> Exists utila_is_true ys)
@@ -822,7 +822,7 @@ Section utila.
                       := orb_prop [[y0]] [[utila_many ys]]
                            (eq_sym
                              (utila_many_cons y0 ys
-                              || X = _ @X by <- H)) in
+                              |+ X = _ @X by <- H)) in
                     match H0 with
                     | or_introl H1
                       => Exists_cons_hd utila_is_true y0 ys H1
@@ -837,14 +837,14 @@ Section utila.
                (fun y0 ys
                  (H : [[y0]] = true)
                  => orb_true_l [[utila_many ys]]
-                    || orb X [[utila_many ys]] = true @X by H
-                    || X = true                       @X by utila_many_cons y0 ys)
+                    |+ orb X [[utila_many ys]] = true @X by H
+                    |+ X = true                       @X by utila_many_cons y0 ys)
                (fun y0 ys
                  (H : Exists utila_is_true ys)
                  (F : [[utila_many ys]] = true)
                  => orb_true_r [[y0]]
-                    || orb [[y0]] X = true @X by F
-                    || X = true            @X by utila_many_cons y0 ys)
+                    |+ orb [[y0]] X = true @X by F
+                    |+ X = true            @X by utila_many_cons y0 ys)
                xs).
 
     Definition utila_null (k : Kind)
@@ -858,13 +858,13 @@ Section utila.
     Proof
       fun k f
         => eq_refl {{utila_null k}}
-           || X = {{utila_null k}}
+           |+ X = {{utila_null k}}
               @X by utila_sem_unit_correct (unpack k (Var type (SyntaxKind (Bit (size k))) (natToWord (size k) 0)))
-           || [[munit (unpack k (Var type (SyntaxKind (Bit (size k))) X))]] = {{utila_null k}}
+           |+ [[munit (unpack k (Var type (SyntaxKind (Bit (size k))) X))]] = {{utila_null k}}
               @X by utila_sem_foldr_nil_correct
                       (fun x acc => (ITE (f x) (pack x) ($0) .| acc))
                       ($0)
-           || X = {{utila_null k}}
+           |+ X = {{utila_null k}}
               @X by utila_sem_bind_correct
                       (utila_mfoldr
                          (fun x acc => (ITE (f x) (pack x) ($0) .| acc))
@@ -1092,7 +1092,7 @@ Section utila.
                      :  {{f #[[x0]]}} = false
                      := H x0 (or_introl (In x0 xs) (eq_refl x0)) in
                  utila_expr_find_lm0 f init x0 xs H2
-                 || [[utila_expr_foldr (case f) init (x0 :: xs)]] = a
+                 |+ [[utila_expr_foldr (case f) init (x0 :: xs)]] = a
                                                                       @a by <- H1).
 
       (*
@@ -1159,21 +1159,21 @@ Section utila.
                           (fun eq_x0_x : x0 = x
                            => let fx0_true
                                   :  {{f #[[x0]]}} = true
-                                  := fx_true || {{f #[[a]]}} = true @a by eq_x0_x in
+                                  := fx_true |+ {{f #[[a]]}} = true @a by eq_x0_x in
                               let red0
                                   :  [[utila_expr_foldr (case f) ($0)%kami_expr (x0 :: xs)]] =
                                      {{pack #[[x]]}} ^|
                                                      [[utila_expr_foldr (case f) _ xs]]
                                   := utila_expr_foldr_correct_cons (case f) ($0)%kami_expr x0 xs
-                                     || _ = a ^| [[utila_expr_foldr (case f) _ xs]]
+                                     |+ _ = a ^| [[utila_expr_foldr (case f) _ xs]]
                                               @a by <- wor_wzero _
 
                                                                  (if {{f #[[x0]]}}
                                                                   then {{pack #[[x0]]}}
                                                                   else (ZToWord _ 0))
-                                                       || _ = (if a : bool then _ else _) ^| _
+                                                       |+ _ = (if a : bool then _ else _) ^| _
                                                                                           @a by <- fx0_true 
-                                                                                                   || _ = {{pack #[[a]]}} ^| _
+                                                                                                   |+ _ = {{pack #[[a]]}} ^| _
                                                                                                                           @a by <- eq_x0_x in
                               sumbool_ind
                                 (fun _
@@ -1182,9 +1182,9 @@ Section utila.
                                 (* II.A.1 *)
                                 (fun in_x_xs : In x xs
                                  => red0
-                                    || _ = _ ^| a
+                                    |+ _ = _ ^| a
                                              @a by <- eq_pack_x in_x_xs
-                                                      || _ = a
+                                                      |+ _ = a
                                                                @a by <- wor_idemp _ {{pack #[[x]]}})
                                 (* II.A.2 *)
                                 (fun not_in_x_xs : ~ In x xs
@@ -1197,12 +1197,12 @@ Section utila.
                                                                    (fun fy_true : {{f #[[y]]}} = true
                                                                     => not_in_x_xs
                                                                          (in_y_xs
-                                                                          || In a xs
+                                                                          |+ In a xs
                                                                                 @a by eq_x y (conj (or_intror _ in_y_xs) fy_true)))) in
                                     red0
-                                    || _ = _ ^| a
+                                    |+ _ = _ ^| a
                                              @a by <- eq_0
-                                                      || _ = a
+                                                      |+ _ = a
                                                                @a by <- wzero_wor _ {{pack #[[x]]}})
                                 (kami_in_dec x xs))
                           (* II.B *)
@@ -1221,7 +1221,7 @@ Section utila.
                                 (* II.B.1 *)
                                 (fun in_x_xs : In x xs
                                  => utila_expr_find_lm0 f ($0) x0 xs fx0_false
-                                    || _ = a @a by <- eq_pack_x in_x_xs)
+                                    |+ _ = a @a by <- eq_pack_x in_x_xs)
                                 (* II.B.2 contradictory case - x must be in x0 :: xs. *)
                                 (fun not_in_x_xs : ~ In x xs
                                  => False_ind _

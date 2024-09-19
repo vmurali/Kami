@@ -80,7 +80,7 @@ Section nat_string.
                                             := eq_ind
                                                  0
                                                  (fun x => Nat.div x (S (S radix)) = 0)
-                                                 (Nat.div_0_l (S (S radix)) (Nat.neq_succ_0 (S radix)))
+                                                 (Nat.Div0.div_0_l (S (S radix)))
                                                  n
                                                  H0 in
                                           let H1 : S q = 0
