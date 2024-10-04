@@ -187,7 +187,9 @@ Section Misc.
                  @countOnes m no (TruncLsbTo m 1 (castBits (eq_sym (Nat.add_1_r m)) e))
     end.
 
-  Definition lgCeilPlus1 n (e: Bit n @# ty) : Bit (Nat.log2_up (S n)) @# ty := $n - countLeadingZeros _ e.
+  Definition lgCeilPlus1_bit n (e: Bit n @# ty) : Bit (Nat.log2_up (S n)) @# ty := $n - countLeadingZeros _ e.
+
+  Definition lgCeil_bit n (e: Bit n @# ty) : Bit (Nat.log2_up (S n)) @# ty := lgCeilPlus1_bit e - (ITE (countOnes (Nat.log2_up (S n)) e == $1) $1 $0).
 End Misc.
 
 Section Reducer.
