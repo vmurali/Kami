@@ -189,7 +189,11 @@ Section Misc.
 
   Definition lgCeilPlus1_bit n (e: Bit n @# ty) : Bit (Nat.log2_up (S n)) @# ty := $n - countLeadingZeros _ e.
 
-  Definition lgCeil_bit n (e: Bit n @# ty) : Bit (Nat.log2_up (S n)) @# ty := lgCeilPlus1_bit e - (ITE (countOnes (Nat.log2_up (S n)) e == $1) $1 $0).
+  Definition lgCeil_bit n (e: Bit n @# ty) : Bit (Nat.log2_up (S n)) @# ty :=
+    lgCeilPlus1_bit e - (ITE (countOnes (Nat.log2_up (S n)) e == $1) $1 $0).
+
+  Definition remainderNonZero n (e: Bit n @# ty) (numBits: Bit (Nat.log2_up (S n)) @# ty): Bool @# ty :=
+    isNotZero (e << ($n - numBits)).
 End Misc.
 
 Section Reducer.
