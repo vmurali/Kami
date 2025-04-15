@@ -32,6 +32,11 @@ Section utila.
 
     Definition tag := @tagFrom 0.
 
+    Definition findIdx A (f: A -> bool) l := match find (fun x => f (snd x)) (tag l) with
+                                             | None => None
+                                             | Some (idx, _) => Some idx
+                                             end.
+
     (* I. Kami Expression Definitions *)
 
     Definition msb

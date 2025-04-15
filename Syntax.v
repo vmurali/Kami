@@ -269,6 +269,18 @@ Section Phoas.
       end.
     Defined.
 
+    Fixpoint countTrailingZeros ni no: Expr (SyntaxKind (Bit ni)) -> Expr (SyntaxKind (Bit no)).
+    refine
+      match ni return Expr (SyntaxKind (Bit ni)) -> Expr (SyntaxKind (Bit no)) with
+      | 0 => fun _ => Const (wzero _)
+      | S m => fun e =>
+                 ITE (Eq (UniBit (TruncLsb 1 m) e) (Const WO~0))
+                     (CABit Add [Const (natToWord _ 1);
+                                     countTrailingZeros m _ (UniBit (TruncMsb 1 m) e)])
+                     (Const (wzero _))
+      end.
+    Defined.
+
     Fixpoint sumSizes n: (Fin.t n -> nat) -> nat :=
       match n return (Fin.t n -> nat) -> nat with
       | 0 => fun _ => 0

@@ -1,7 +1,6 @@
 Require Import Kami.Syntax Kami.Notations.
 Require Import Psatz Kami.Lib.Word PeanoNat.
 
-
 Definition lgCeil i := S (Nat.log2_iter (pred (pred i)) 0 1 0).
 
 Lemma lgCeilGe1: forall x, lgCeil x >= 1.
@@ -187,10 +186,12 @@ Section Misc.
                  @countOnes m no (TruncLsbTo m 1 (castBits (eq_sym (Nat.add_1_r m)) e))
     end.
 
-  Definition lgCeilPlus1_bit n (e: Bit n @# ty) : Bit (Nat.log2_up (S n)) @# ty := $n - countLeadingZeros _ e.
+  Definition lg_bit n (e: Bit n @# ty) : Bit (Nat.log2_up (S n)) @# ty := ITE (isNotZero e) ($n + ~ (countLeadingZeros _ e)) $0.
+
+  Definition lgFrac_bit n (e: Bit n @# ty) : Bool @# ty := countOnes (Nat.log2_up (S n)) e > $1.
 
   Definition lgCeil_bit n (e: Bit n @# ty) : Bit (Nat.log2_up (S n)) @# ty :=
-    lgCeilPlus1_bit e - (ITE (countOnes (Nat.log2_up (S n)) e == $1) $1 $0).
+    ($n + ~ (countLeadingZeros _ e)) + (ITE (countOnes (Nat.log2_up (S n)) e == $1) $0 $1).
 
   Definition remainderNonZero n (e: Bit n @# ty) (numBits: Bit (Nat.log2_up (S n)) @# ty): Bool @# ty :=
     isNotZero (e << ($n - numBits)).
